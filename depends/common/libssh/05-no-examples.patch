@@ -1,0 +1,11 @@
+--- libssh-0.5.0/CMakeLists.txt.old	2013-11-22 19:20:20.114914066 +0100
++++ libssh-0.5.0/CMakeLists.txt	2013-11-22 19:20:24.746914287 +0100
+@@ -87,7 +87,7 @@
+     pkgconfig
+ )
+ 
+-add_subdirectory(examples)
++#add_subdirectory(examples)
+ 
+ if (WITH_TESTING)
+   find_package(CMockery REQUIRED)

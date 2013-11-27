@@ -1,0 +1,14 @@
+--- libssh-0.5.0/cmake/Modules/DefineCompilerFlags.cmake.old	2013-11-22 19:18:48.782909698 +0100
++++ libssh-0.5.0/cmake/Modules/DefineCompilerFlags.cmake	2013-11-22 19:19:26.190911487 +0100
+@@ -20,9 +20,9 @@
+             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+         endif (WITH_FPIC)
+ 
+-        check_c_compiler_flag_ssp("-fstack-protector" WITH_STACK_PROTECTOR)
++        check_c_compiler_flag_ssp("-fno-stack-protector" WITH_STACK_PROTECTOR)
+         if (WITH_STACK_PROTECTOR)
+-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fstack-protector")
++            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-stack-protector")
+         endif (WITH_STACK_PROTECTOR)
+ 
+         check_c_compiler_flag("-D_FORTIFY_SOURCE=2" WITH_FORTIFY_SOURCE)

@@ -1,0 +1,1 @@
+libssh http://mirrors.xbmc.org/build-deps/sources/libssh-0.5.0.tar.gz
