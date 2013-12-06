@@ -19,18 +19,14 @@
  */
 
 #include "SFTPSession.h"
-#include "xbmc/util/timeutils.h"
+#include "util/timeutils.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sstream>
-#include "xbmc/libXBMC_addon.h"
-
-extern ADDON::CHelper_libXBMC_addon* XBMC;
+#include <kodi/General.h>
 
 #define SFTP_TIMEOUT 5
-
-namespace Yo {
 
 static std::string CorrectPath(const std::string& path)
 {
@@ -75,24 +71,24 @@ static const char * SFTPErrorText(int sftp_error)
     case -1:
       return "Not a valid error code, probably called on an invalid session";
     default:
-      XBMC->Log(ADDON::LOG_ERROR, "SFTPErrorText: Unknown error code: %d", sftp_error);
+      kodi::Log(ADDON_LOG_ERROR, "SFTPErrorText: Unknown error code: %d", sftp_error);
   }
   return "Unknown error code";
 }
 
-CSFTPSession::CSFTPSession(const std::string& host, unsigned int port, const std::string& username, const std::string& password)
+CSFTPSession::CSFTPSession(const VFSURL& url)
 {
-  XBMC->Log(ADDON::LOG_INFO, "SFTPSession: Creating new session on host '%s:%d' with user '%s'", host.c_str(), port, username.c_str());
-  PLATFORM::CLockObject lock(m_lock);
-  if (!Connect(host, port, username, password))
+  kodi::Log(ADDON_LOG_INFO, "SFTPSession: Creating new session on host '%s:%d' with user '%s'", url.hostname, url.port, url.username);
+  P8PLATFORM::CLockObject lock(m_lock);
+  if (!Connect(url))
     Disconnect();
 
-  m_LastActive = PLATFORM::GetTimeMs();
+  m_LastActive = P8PLATFORM::GetTimeMs();
 }
 
 CSFTPSession::~CSFTPSession()
 {
-  PLATFORM::CLockObject lock(m_lock);
+  P8PLATFORM::CLockObject lock(m_lock);
   Disconnect();
 }
 
@@ -100,8 +96,8 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file)
 {
   if (m_connected)
   {
-    PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = PLATFORM::GetTimeMs();
+    P8PLATFORM::CLockObject lock(m_lock);
+    m_LastActive = P8PLATFORM::GetTimeMs();
     sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), O_RDONLY, 0);
     if (handle)
     {
@@ -109,30 +105,30 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file)
       return handle;
     }
     else
-      XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Was connected but couldn't create filehandle for '%s'", file.c_str());
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Was connected but couldn't create filehandle for '%s'", file.c_str());
   }
   else
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Not connected and can't create file handle for '%s'", file.c_str());
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Not connected and can't create file handle for '%s'", file.c_str());
 
   return NULL;
 }
 
 void CSFTPSession::CloseFileHandle(sftp_file handle)
 {
-  PLATFORM::CLockObject lock(m_lock);
+  P8PLATFORM::CLockObject lock(m_lock);
   sftp_close(handle);
 }
 
 bool CSFTPSession::GetDirectory(const std::string& base, const std::string& folder,
-                                std::vector<VFSDirEntry>& items)
+                                std::vector<kodi::vfs::CDirEntry>& items)
 {
   int sftp_error = SSH_FX_OK;
   if (m_connected)
   {
     sftp_dir dir = NULL;
 
-    PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = PLATFORM::GetTimeMs();
+    P8PLATFORM::CLockObject lock(m_lock);
+    m_LastActive = P8PLATFORM::GetTimeMs();
     dir = sftp_opendir(m_sftp_session, CorrectPath(folder).c_str());
 
     //Doing as little work as possible within the critical section
@@ -143,7 +139,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
 
     if (!dir)
     {
-      XBMC->Log(ADDON::LOG_ERROR, "%s: %s for '%s'", __FUNCTION__, SFTPErrorText(sftp_error), folder.c_str());
+      kodi::Log(ADDON_LOG_ERROR, "%s: %s for '%s'", __FUNCTION__, SFTPErrorText(sftp_error), folder.c_str());
     }
     else
     {
@@ -164,7 +160,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
           lock.Unlock();
           continue;
         }
-        
+
         if (attributes)
         {
           std::string itemName = attributes->name;
@@ -181,38 +177,23 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
               continue;
           }
 
-          VFSDirEntry entry;
-          entry.label = strdup(itemName.c_str());
+          kodi::vfs::CDirEntry entry;
+          entry.SetLabel(itemName);
 
           if (itemName[0] == '.')
-          {
-            entry.properties = new VFSProperty;
-            entry.properties->name = strdup("file:hidden");
-            entry.properties->val = strdup("true");
-            entry.num_props = 1;
-          }
-          else
-          {
-            entry.properties = NULL;
-            entry.num_props = 0;
-          }
+            entry.AddProperty("file:hidden", "true");
 
-          if (attributes->flags & SSH_FILEXFER_ATTR_ACMODTIME)
-            entry.mtime = attributes->mtime;
+          entry.SetDateTime(attributes->mtime64);
 
           if (attributes->type & SSH_FILEXFER_TYPE_DIRECTORY)
           {
             localPath.append("/");
-            entry.folder = true;
-            entry.size = 0;
+            entry.SetFolder(true);
           }
           else
-          {
-            entry.size = attributes->size;
-            entry.folder = false;
-          }
+            entry.SetSize(attributes->size);
 
-          entry.path = strdup((base+localPath).c_str());
+          entry.SetPath(base+localPath);
           items.push_back(entry);
 
           lock.Lock();
@@ -231,7 +212,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
     }
   }
   else
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Not connected, can't list directory '%s'", folder.c_str());
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Not connected, can't list directory '%s'", folder.c_str());
 
   return false;
 }
@@ -256,8 +237,8 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 {
   if(m_connected)
   {
-    PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = PLATFORM::GetTimeMs();
+    P8PLATFORM::CLockObject lock(m_lock);
+    m_LastActive = P8PLATFORM::GetTimeMs();
     sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
 
     if (attributes)
@@ -277,44 +258,44 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
     }
     else
     {
-      XBMC->Log(ADDON::LOG_ERROR, "SFTPSession::Stat - Failed to get attributes for '%s'", path);
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed to get attributes for '%s'", path);
       return -1;
     }
   }
   else
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession::Stat - Failed because not connected for '%s'", path);
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed because not connected for '%s'", path);
     return -1;
   }
 }
 
 int CSFTPSession::Seek(sftp_file handle, uint64_t position)
 {
-  PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = PLATFORM::GetTimeMs();
+  P8PLATFORM::CLockObject lock(m_lock);
+  m_LastActive = P8PLATFORM::GetTimeMs();
   int result = sftp_seek64(handle, position);
   return result;
 }
 
 int CSFTPSession::Read(sftp_file handle, void *buffer, size_t length)
 {
-  PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = PLATFORM::GetTimeMs();
+  P8PLATFORM::CLockObject lock(m_lock);
+  m_LastActive = P8PLATFORM::GetTimeMs();
   int result=sftp_read(handle, buffer, length);
   return result;
 }
 
 int64_t CSFTPSession::GetPosition(sftp_file handle)
 {
-  PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = PLATFORM::GetTimeMs();
+  P8PLATFORM::CLockObject lock(m_lock);
+  m_LastActive = P8PLATFORM::GetTimeMs();
   int64_t result = sftp_tell64(handle);
   return result;
 }
 
 bool CSFTPSession::IsIdle()
 {
-  return (PLATFORM::GetTimeMs() - m_LastActive) > 90000;
+  return (P8PLATFORM::GetTimeMs() - m_LastActive) > 90000;
 }
 
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
@@ -324,31 +305,31 @@ bool CSFTPSession::VerifyKnownHost(ssh_session session)
     case SSH_SERVER_KNOWN_OK:
       return true;
     case SSH_SERVER_KNOWN_CHANGED:
-      XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Server that was known has changed");
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Server that was known has changed");
       return false;
     case SSH_SERVER_FOUND_OTHER:
-      XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: The host key for this server was not found but an other type of key exists. An attacker might change the default server key to confuse your client into thinking the key does not exist");
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: The host key for this server was not found but an other type of key exists. An attacker might change the default server key to confuse your client into thinking the key does not exist");
       return false;
     case SSH_SERVER_FILE_NOT_FOUND:
-      XBMC->Log(ADDON::LOG_INFO, "SFTPSession: Server file was not found, creating a new one");
+      kodi::Log(ADDON_LOG_INFO, "SFTPSession: Server file was not found, creating a new one");
     case SSH_SERVER_NOT_KNOWN:
-      XBMC->Log(ADDON::LOG_INFO, "SFTPSession: Server unkown, we trust it for now");
+      kodi::Log(ADDON_LOG_INFO, "SFTPSession: Server unkown, we trust it for now");
       if (ssh_write_knownhost(session) < 0)
       {
-        XBMC->Log(ADDON::LOG_ERROR, "CSFTPSession: Failed to save host '%s'", strerror(errno));
+        kodi::Log(ADDON_LOG_ERROR, "CSFTPSession: Failed to save host '%s'", strerror(errno));
         return false;
       }
 
       return true;
     case SSH_SERVER_ERROR:
-      XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to verify host '%s'", ssh_get_error(session));
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to verify host '%s'", ssh_get_error(session));
       return false;
   }
 
   return false;
 }
 
-bool CSFTPSession::Connect(const std::string& host, unsigned int port, const std::string& username, const std::string& password)
+bool CSFTPSession::Connect(const VFSURL& url)
 {
   int timeout     = SFTP_TIMEOUT;
   m_connected     = false;
@@ -358,52 +339,52 @@ bool CSFTPSession::Connect(const std::string& host, unsigned int port, const std
   m_session=ssh_new();
   if (m_session == NULL)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to initialize session for host '%s'", host.c_str());
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize session for host '%s'", url.hostname);
     return false;
   }
 
 #if LIBSSH_VERSION_INT >= SSH_VERSION_INT(0,4,0)
-  if (ssh_options_set(m_session, SSH_OPTIONS_USER, username.c_str()) < 0)
+  if (ssh_options_set(m_session, SSH_OPTIONS_USER, url.username) < 0)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to set username '%s' for session", username.c_str());
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set username '%s' for session", url.username);
     return false;
   }
 
-  if (ssh_options_set(m_session, SSH_OPTIONS_HOST, host.c_str()) < 0)
+  if (ssh_options_set(m_session, SSH_OPTIONS_HOST, url.hostname) < 0)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to set host '%s' for session", host.c_str());
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set host '%s' for session", url.hostname);
     return false;
   }
 
-  if (ssh_options_set(m_session, SSH_OPTIONS_PORT, &port) < 0)
+  if (ssh_options_set(m_session, SSH_OPTIONS_PORT, &url.port) < 0)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to set port '%d' for session", port);
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set port '%d' for session", url.port);
     return false;
   }
 
   ssh_options_set(m_session, SSH_OPTIONS_LOG_VERBOSITY, 0);
-  ssh_options_set(m_session, SSH_OPTIONS_TIMEOUT, &timeout);  
+  ssh_options_set(m_session, SSH_OPTIONS_TIMEOUT, &timeout);
 #else
   SSH_OPTIONS* options = ssh_options_new();
 
-  if (ssh_options_set_username(options, username.c_str()) < 0)
+  if (ssh_options_set_username(options, url->username) < 0)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to set username '%s' for session", username.c_str());
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set username '%s' for session", url->username);
     return false;
   }
 
-  if (ssh_options_set_host(options, host.c_str()) < 0)
+  if (ssh_options_set_host(options, url->hostname) < 0)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to set host '%s' for session", host.c_str());
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set host '%s' for session", url->hostname);
     return false;
   }
 
-  if (ssh_options_set_port(options, port) < 0)
+  if (ssh_options_set_port(options, url->port) < 0)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to set port '%d' for session", port);
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set port '%d' for session", url->port);
     return false;
   }
-  
+
   ssh_options_set_timeout(options, timeout, 0);
 
   ssh_options_set_log_verbosity(options, 0);
@@ -413,20 +394,20 @@ bool CSFTPSession::Connect(const std::string& host, unsigned int port, const std
 
   if(ssh_connect(m_session))
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to connect '%s'", ssh_get_error(m_session));
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to connect '%s'", ssh_get_error(m_session));
     return false;
   }
 
   if (!VerifyKnownHost(m_session))
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Host is not known '%s'", ssh_get_error(m_session));
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Host is not known '%s'", ssh_get_error(m_session));
     return false;
   }
 
   int noAuth = SSH_AUTH_DENIED;
   if ((noAuth = ssh_userauth_none(m_session, NULL)) == SSH_AUTH_ERROR)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to authenticate via guest '%s'", ssh_get_error(m_session));
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to authenticate via guest '%s'", ssh_get_error(m_session));
     return false;
   }
 
@@ -436,7 +417,7 @@ bool CSFTPSession::Connect(const std::string& host, unsigned int port, const std
   int publicKeyAuth = SSH_AUTH_DENIED;
   if (method & SSH_AUTH_METHOD_PUBLICKEY && (publicKeyAuth = ssh_userauth_autopubkey(m_session, NULL)) == SSH_AUTH_ERROR)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to authenticate via publickey '%s'", ssh_get_error(m_session));
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to authenticate via publickey '%s'", ssh_get_error(m_session));
     return false;
   }
 
@@ -445,15 +426,15 @@ bool CSFTPSession::Connect(const std::string& host, unsigned int port, const std
   if (method & SSH_AUTH_METHOD_PASSWORD)
   {
     if (publicKeyAuth != SSH_AUTH_SUCCESS &&
-        (passwordAuth = ssh_userauth_password(m_session, username.c_str(), password.c_str())) == SSH_AUTH_ERROR)
+        (passwordAuth = ssh_userauth_password(m_session, url.username, url.password)) == SSH_AUTH_ERROR)
       {
-        XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to authenticate via password '%s'", ssh_get_error(m_session));
+        kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to authenticate via password '%s'", ssh_get_error(m_session));
         return false;
       }
   }
-  else if (!password.empty())
+  else if (strlen(url.password) > 0)
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Password present, but server does not support password authentication");
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Password present, but server does not support password authentication");
   }
 
   if (noAuth == SSH_AUTH_SUCCESS || publicKeyAuth == SSH_AUTH_SUCCESS || passwordAuth == SSH_AUTH_SUCCESS)
@@ -462,13 +443,13 @@ bool CSFTPSession::Connect(const std::string& host, unsigned int port, const std
 
     if (m_sftp_session == NULL)
     {
-      XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to initialize channel '%s'", ssh_get_error(m_session));
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize channel '%s'", ssh_get_error(m_session));
       return false;
     }
 
     if (sftp_init(m_sftp_session))
     {
-      XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: Failed to initialize sftp '%s'", ssh_get_error(m_session));
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize sftp '%s'", ssh_get_error(m_session));
       return false;
     }
 
@@ -476,7 +457,7 @@ bool CSFTPSession::Connect(const std::string& host, unsigned int port, const std
   }
   else
   {
-    XBMC->Log(ADDON::LOG_ERROR, "SFTPSession: No authentication method successful");
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: No authentication method successful");
   }
 
   return m_connected;
@@ -503,7 +484,7 @@ void CSFTPSession::Disconnect()
 bool CSFTPSession::GetItemPermissions(const char *path, uint32_t &permissions)
 {
   bool gotPermissions = false;
-  PLATFORM::CLockObject lock(m_lock);
+  P8PLATFORM::CLockObject lock(m_lock);
   if(m_connected)
   {
     sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
@@ -528,22 +509,20 @@ CSFTPSessionManager& CSFTPSessionManager::Get()
   return instance;
 }
 
-CSFTPSessionPtr CSFTPSessionManager::CreateSession(const std::string& host,
-                                                   unsigned int port,
-                                                   const std::string& username,
-                                                   const std::string& password)
+CSFTPSessionPtr CSFTPSessionManager::CreateSession(const VFSURL& url)
 {
   // Convert port number to string
   std::stringstream itoa;
-  itoa << port;
+  itoa << (url.port ? url.port : 22);
   std::string portstr = itoa.str();
 
-  PLATFORM::CLockObject lock(m_lock);
-  std::string key = username + ":" + password + "@" + host + ":" + portstr;
+  P8PLATFORM::CLockObject lock(m_lock);
+  std::string key = std::string(url.username) + ":" +
+                    url.password + "@" + url.hostname + ":" + portstr;
   CSFTPSessionPtr ptr = sessions[key];
   if (ptr == NULL)
   {
-    ptr = CSFTPSessionPtr(new CSFTPSession(host, port, username, password));
+    ptr = CSFTPSessionPtr(new CSFTPSession(url));
     sessions[key] = ptr;
   }
 
@@ -552,7 +531,7 @@ CSFTPSessionPtr CSFTPSessionManager::CreateSession(const std::string& host,
 
 void CSFTPSessionManager::ClearOutIdleSessions()
 {
-  PLATFORM::CLockObject lock(m_lock);
+  P8PLATFORM::CLockObject lock(m_lock);
   for(std::map<std::string, CSFTPSessionPtr>::iterator iter = sessions.begin(); iter != sessions.end();)
   {
     if (iter->second->IsIdle())
@@ -564,7 +543,6 @@ void CSFTPSessionManager::ClearOutIdleSessions()
 
 void CSFTPSessionManager::DisconnectAllSessions()
 {
-  PLATFORM::CLockObject lock(m_lock);
+  P8PLATFORM::CLockObject lock(m_lock);
   sessions.clear();
-}
 }

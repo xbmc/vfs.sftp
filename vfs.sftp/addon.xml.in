@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon
+  id="vfs.sftp"
+  version="1.0.0"
+  name="SFTP support"
+  provider-name="spiff">
+  <requires>@ADDON_DEPENDS@</requires>
+  <extension
+    point="kodi.vfs"
+    protocols="sftp|ssh"
+    files="true"
+    directories="true"
+    supportDialog="true"
+    supportPath="true"
+    supportUsername="true"
+    supportPassword="true"
+    supportPort="true"
+    supportBrowsing="false"
+    defaultPort="22"
+    type="sftp"
+    label="20260"
+    zeroconf="_sftp-ssh._tcp"
+    library_@PLATFORM@="@LIBRARY_FILENAME@"/>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en">SFTP support</summary>
+    <description lang="en">SFTP support</description>
+    <platform>@PLATFORM@</platform>
+  </extension>
+</addon>
