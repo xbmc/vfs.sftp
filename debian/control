@@ -1,0 +1,22 @@
+Source: kodi-vfs-sftp
+Priority: extra
+Maintainer: Arne Morten Kvarving <spiff@xbmc.org>
+Build-Depends: debhelper (>= 9.0.0), cmake, libkodiplatform-dev (>= 17.0.0),
+               kodi-addon-dev, libssh-dev
+Standards-Version: 3.9.4
+Section: libs
+
+Package: kodi-vfs-sftp
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: SFTP VFS for Kodi
+ SFTP VFS for Kodi
+
+Package: kodi-vfs-sftp-dbg
+Section: debug
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: debug symbols for SFTP VFS for Kodi
+ debug symbols for SFTP VFS for Kodi
+
