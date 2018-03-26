@@ -7,7 +7,7 @@
 
 find_package(PkgConfig)
 if(PKG_CONFIG_FOUND)
-  pkg_check_modules(PC_SSH libssh QUIET)
+  pkg_check_modules(PC_SSH libssh>=0.6 QUIET)
 endif()
 
 find_path(SSH_INCLUDE_DIR NAMES libssh/libssh.h PATHS ${PC_SSH_INCLUDEDIR})
