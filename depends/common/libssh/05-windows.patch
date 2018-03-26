@@ -1,0 +1,36 @@
+--- a/include/libssh/sftp.h
++++ b/include/libssh/sftp.h
+@@ -54,7 +54,7 @@
+ #endif /* gid_t */
+ #ifdef _MSC_VER
+ #ifndef ssize_t
+-  typedef _W64 SSIZE_T ssize_t;
++  typedef intptr_t ssize_t;
+ #endif /* ssize_t */
+ #endif /* _MSC_VER */
+ #endif /* _WIN32 */
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -224,6 +224,7 @@
+   ${LIBSSH_PRIVATE_INCLUDE_DIRS}
+ )
+ 
++if(NOT WIN32)
+ add_library(${LIBSSH_SHARED_LIBRARY} SHARED ${libssh_SRCS})
+ 
+ target_link_libraries(${LIBSSH_SHARED_LIBRARY} ${LIBSSH_LINK_LIBRARIES})
+@@ -258,12 +259,13 @@
+   ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+   COMPONENT libraries
+ )
++endif()
+ 
+ if (WITH_STATIC_LIB)
+   add_library(${LIBSSH_STATIC_LIBRARY} STATIC ${libssh_SRCS})
+ 
+   if (MSVC)
+-    set(OUTPUT_SUFFIX static)
++    set(OUTPUT_SUFFIX )
+   else (MSVC)
+     set(OUTPUT_SUFFIX )
+   endif (MSVC)
