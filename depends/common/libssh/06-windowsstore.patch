@@ -1,0 +1,124 @@
+--- a/cmake/Modules/DefineCompilerFlags.cmake
++++ b/cmake/Modules/DefineCompilerFlags.cmake
+@@ -73,7 +73,7 @@
+     #"deprecated" functions
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1")
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1")
+-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_NONSTDC_NO_WARNINGS=1 /D _CRT_SECURE_NO_WARNINGS=1")
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_NONSTDC_NO_WARNINGS=1 /D _CRT_SECURE_NO_WARNINGS=1 /D _WINSOCK_DEPRECATED_NO_WARNINGS=1")
+ endif (MSVC)
+ 
+ # This removes this annoying warning
+--- a/src/external/curve25519_ref.c
++++ b/src/external/curve25519_ref.c
+@@ -61,7 +61,14 @@
+ 
+   for (j = 0;j < 32;++j) aorig[j] = a[j];
+   add(a,a,minusp);
++#if defined(_MSC_VER)
++#pragma warning(push)
++#pragma warning(disable: 4146)
++#endif
+   negative = -((a[31] >> 7) & 1);
++#if defined(_MSC_VER)
++#pragma warning(pop)
++#endif
+   for (j = 0;j < 32;++j) a[j] ^= negative & (aorig[j] ^ a[j]);
+ }
+ 
+--- a/src/external/fe25519.c
++++ b/src/external/fe25519.c
+@@ -85,7 +85,14 @@
+     }
+     m &= ge(r->v[0],237);
+ 
++#if defined(_MSC_VER)
++#pragma warning(push)
++#pragma warning(disable: 4146)
++#endif
+     m = -m;
++#if defined(_MSC_VER)
++#pragma warning(pop)
++#endif
+ 
+     r->v[31] -= m&127;
+     for (i = 30; i > 0; i--) {
+@@ -157,7 +164,14 @@
+     int i;
+     uint32_t mask = b;
+ 
++#if defined(_MSC_VER)
++#pragma warning(push)
++#pragma warning(disable: 4146)
++#endif
+     mask = -mask;
++#if defined(_MSC_VER)
++#pragma warning(pop)
++#endif
+ 
+     for (i = 0; i < 32; i++) {
+         r->v[i] ^= mask & (x->v[i] ^ r->v[i]);
+--- a/src/misc.c
++++ b/src/misc.c
+@@ -49,6 +49,7 @@
+ #include <time.h>
+ 
+ #ifdef _WIN32
++#include <windows.h>
+ 
+ #ifndef _WIN32_IE
+ # define _WIN32_IE 0x0501 // SHGetSpecialFolderPath
+@@ -98,6 +99,7 @@
+ 
+ #ifdef _WIN32
+ char *ssh_get_user_home_dir(void) {
++#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY != WINAPI_FAMILY_APP)
+   char tmp[MAX_PATH] = {0};
+   char *szPath = NULL;
+ 
+@@ -110,6 +112,7 @@
+     strcpy(szPath, tmp);
+     return szPath;
+   }
++#endif
+ 
+   return NULL;
+ }
+@@ -140,6 +143,7 @@
+ }
+ 
+ char *ssh_get_local_username(void) {
++#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY != WINAPI_FAMILY_APP)
+     DWORD size = 0;
+     char *user;
+ 
+@@ -154,6 +158,7 @@
+     if (GetUserName(user, &size)) {
+         return user;
+     }
++#endif
+ 
+     return NULL;
+ }
+--- a/src/options.c
++++ b/src/options.c
+@@ -1402,7 +1402,7 @@
+           int key_type;
+           ssh_key key;
+           ssh_key *bind_key_loc = NULL;
+-          char **bind_key_path_loc;
++          char **bind_key_path_loc = NULL;
+ 
+           rc = ssh_pki_import_privkey_file(value, NULL, NULL, NULL, &key);
+           if (rc != SSH_OK) {
+--- a/src/pki_container_openssh.c
++++ b/src/pki_container_openssh.c
+@@ -158,7 +158,7 @@
+     char passphrase_buffer[128];
+     size_t key_material_len;
+     ssh_buffer buffer;
+-    ssh_string salt;
++    ssh_string salt = NULL;
+     uint32_t rounds;
+     int cmp;
+     int rc;
