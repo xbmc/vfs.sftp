@@ -23,6 +23,8 @@ include_directories(${KODI_INCLUDE_DIR}/..
 set(SFTP_SOURCES src/SFTPSession.cpp
                  src/SFTPFile.cpp)
 
+set(SFTP_HEADERS src/SFTPSession.h)
+
 set(DEPLIBS ${p8-platform_LIBRARIES}
             ${SSH_LIBRARIES}
             ${OPENSSL_LIBRARIES}
