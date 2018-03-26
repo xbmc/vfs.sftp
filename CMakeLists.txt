@@ -33,3 +33,5 @@ set(DEPLIBS ${p8-platform_LIBRARIES}
 add_definitions( -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64)
 
 build_addon(vfs.sftp SFTP DEPLIBS)
+
+include(CPack)
