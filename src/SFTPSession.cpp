@@ -364,6 +364,15 @@ bool CSFTPSession::Connect(const VFSURL& url)
     return false;
   }
 
+#if defined(TARGET_DARWIN_IOS)
+  std::string sshFolder = kodi::vfs::TranslateSpecialProtocol("special://home/.ssh");
+  if (ssh_options_set(m_session, SSH_OPTIONS_SSH_DIR, sshFolder.c_str()) < 0)
+  {
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set .ssh folder to '%s' for session", sshFolder.c_str());
+    return false;
+  }
+#endif
+
   ssh_options_set(m_session, SSH_OPTIONS_LOG_VERBOSITY, 0);
   ssh_options_set(m_session, SSH_OPTIONS_TIMEOUT, &timeout);
 
