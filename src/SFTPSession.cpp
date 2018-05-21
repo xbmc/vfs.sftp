@@ -26,7 +26,7 @@
 #include <sstream>
 #include <kodi/General.h>
 
-#define SFTP_TIMEOUT 5
+#define SFTP_TIMEOUT 10
 #if !defined(S_ISREG)
 #define S_ISREG(m) ((m & _S_IFREG) != 0)
 #endif
