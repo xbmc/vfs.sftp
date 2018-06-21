@@ -1,5 +1,5 @@
---- a/src/misc.c	2011-05-31 10:29:52.000000000 -0400
-+++ b/src/misc.c	2013-01-03 00:37:37.652737345 -0500
+--- a/src/misc.c
++++ b/src/misc.c
 @@ -208,6 +208,9 @@
  
  char *ssh_get_user_home_dir(void) {
@@ -10,16 +10,15 @@
    struct passwd pwd;
    struct passwd *pwdbuf;
    char buf[NSS_BUFLEN_PASSWD];
-@@ -226,7 +229,7 @@
+@@ -226,6 +229,7 @@
    }
  
    szPath = strdup(pwd.pw_dir);
--
 +#endif
+ 
    return szPath;
  }
- 
-@@ -240,6 +243,19 @@
+@@ -240,6 +244,17 @@
  }
  
  char *ssh_get_local_username(void) {
@@ -27,9 +26,7 @@
 +    char *name = NULL;
 +    struct passwd *pwd = NULL;
 +    pwd = getpwuid(getuid());
-+    if ( pwd == NULL) {
-+        ssh_set_error(session, SSH_FATAL,
-+            "Couldn't retrieve information for current user!");
++    if (pwd == NULL) {
 +        return NULL;
 +    }
 +
@@ -39,7 +36,7 @@
      struct passwd pwd;
      struct passwd *pwdbuf;
      char buf[NSS_BUFLEN_PASSWD];
-@@ -253,6 +269,7 @@
+@@ -253,6 +268,7 @@
  
      name = strdup(pwd.pw_name);
  
