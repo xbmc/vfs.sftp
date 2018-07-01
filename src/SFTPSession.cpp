@@ -364,7 +364,7 @@ bool CSFTPSession::Connect(const VFSURL& url)
     return false;
   }
 
-#if defined(TARGET_DARWIN_IOS)
+#if defined(TARGET_DARWIN_IOS) || defined(TARGET_WINDOWS_STORE)
   std::string sshFolder = kodi::vfs::TranslateSpecialProtocol("special://home/.ssh");
   if (ssh_options_set(m_session, SSH_OPTIONS_SSH_DIR, sshFolder.c_str()) < 0)
   {
