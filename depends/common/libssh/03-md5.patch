@@ -1,6 +1,5 @@
-diff -ruN a/include/libssh/wrapper.h b/include/libssh/wrapper.h
---- a/include/libssh/wrapper.h	2011-05-31 10:29:52.000000000 -0400
-+++ b/include/libssh/wrapper.h	2012-07-26 00:21:16.021511996 -0400
+--- a/include/libssh/wrapper.h
++++ b/include/libssh/wrapper.h
 @@ -52,7 +52,7 @@
  };
  
@@ -10,9 +9,8 @@ diff -ruN a/include/libssh/wrapper.h b/include/libssh/wrapper.h
  void md5_update(MD5CTX c, const void *data, unsigned long len);
  void md5_final(unsigned char *md,MD5CTX c);
  
-diff -ruN a/src/dh.c b/src/dh.c
---- a/src/dh.c	2011-05-31 10:29:52.000000000 -0400
-+++ b/src/dh.c	2012-07-26 00:19:52.961512049 -0400
+--- a/src/dh.c
++++ b/src/dh.c
 @@ -918,7 +918,7 @@
      return SSH_ERROR;
    }
@@ -31,9 +29,8 @@ diff -ruN a/src/dh.c b/src/dh.c
              if (ctx == NULL) {
                  free(h);
                  rc = -1;
-diff -ruN a/src/kex.c b/src/kex.c
---- a/src/kex1.c	2011-05-31 10:29:52.000000000 -0400
-+++ b/src/kex1.c	2012-07-26 00:20:37.671512021 -0400
+--- a/src/kex1.c
++++ b/src/kex1.c
 @@ -78,7 +78,7 @@
      ssh_string hostn) {
    MD5CTX md5 = NULL;
@@ -43,9 +40,8 @@ diff -ruN a/src/kex.c b/src/kex.c
    if (md5 == NULL) {
      return -1;
    }
-diff -ruN a/src/libcrypto.c b/src/libcrypto.c
---- a/src/libcrypto.c	2011-05-31 10:29:52.000000000 -0400
-+++ b/src/libcrypto.c	2012-07-26 00:20:07.061512022 -0400
+--- a/src/libcrypto.c
++++ b/src/libcrypto.c
 @@ -234,7 +234,7 @@
    SHA512(digest, len, hash);
  }
@@ -55,9 +51,8 @@ diff -ruN a/src/libcrypto.c b/src/libcrypto.c
    MD5CTX c = malloc(sizeof(*c));
    if (c == NULL) {
      return NULL;
-diff -ruN a/src/libgcrypt.c b/src/libgcrypt.c
---- a/src/libgcrypt.c	2011-05-31 10:29:52.000000000 -0400
-+++ b/src/libgcrypt.c	2012-07-26 00:20:19.401512036 -0400
+--- a/src/libgcrypt.c
++++ b/src/libgcrypt.c
 @@ -132,7 +132,7 @@
    gcry_md_hash_buffer(GCRY_MD_SHA512, hash, digest, len);
  }

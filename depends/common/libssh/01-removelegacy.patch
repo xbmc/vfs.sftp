@@ -1,5 +1,5 @@
---- a/src/CMakeLists.txt	2011-06-16 19:04:44.000000000 +0200
-+++ b/src/CMakeLists.txt	2011-06-16 19:03:40.000000000 +0200
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
 @@ -123,7 +123,6 @@
    init.c
    kex.c
