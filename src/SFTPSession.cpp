@@ -453,7 +453,10 @@ void CSFTPSession::Disconnect()
     sftp_free(m_sftp_session);
 
   if (m_session)
+  {
     ssh_disconnect(m_session);
+    ssh_free(m_session);
+  }
 
   m_sftp_session = NULL;
   m_session = NULL;
