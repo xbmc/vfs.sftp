@@ -1,10 +1,10 @@
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -123,7 +123,6 @@
-   init.c
+@@ -134,7 +134,6 @@
    kex.c
    known_hosts.c
+   knownhosts.c
 -  legacy.c
-   libcrypto.c
    log.c
    match.c
+   messages.c

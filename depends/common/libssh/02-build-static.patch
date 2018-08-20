@@ -1,0 +1,18 @@
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -293,6 +293,7 @@
+     )
+ endif (WITH_SYMBOL_VERSIONING AND ABIMAP_FOUND)
+ 
++if(OFF)
+ add_library(${LIBSSH_SHARED_LIBRARY} SHARED ${libssh_SRCS})
+ 
+ target_link_libraries(${LIBSSH_SHARED_LIBRARY} ${LIBSSH_LINK_LIBRARIES})
+@@ -338,6 +339,7 @@
+   ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+   COMPONENT libraries
+ )
++endif()
+ 
+ if (BUILD_STATIC_LIB)
+   add_library(${LIBSSH_STATIC_LIBRARY} STATIC ${libssh_SRCS})

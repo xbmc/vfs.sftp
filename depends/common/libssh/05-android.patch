@@ -1,6 +1,6 @@
 --- a/src/misc.c
 +++ b/src/misc.c
-@@ -208,6 +208,9 @@
+@@ -215,6 +215,9 @@
  
  char *ssh_get_user_home_dir(void) {
    char *szPath = NULL;
@@ -10,7 +10,7 @@
    struct passwd pwd;
    struct passwd *pwdbuf;
    char buf[NSS_BUFLEN_PASSWD];
-@@ -226,6 +229,7 @@
+@@ -233,6 +236,7 @@
    }
  
    szPath = strdup(pwd.pw_dir);
@@ -18,7 +18,7 @@
  
    return szPath;
  }
-@@ -240,6 +244,17 @@
+@@ -247,6 +251,17 @@
  }
  
  char *ssh_get_local_username(void) {
@@ -36,7 +36,7 @@
      struct passwd pwd;
      struct passwd *pwdbuf;
      char buf[NSS_BUFLEN_PASSWD];
-@@ -253,6 +268,7 @@
+@@ -260,6 +275,7 @@
  
      name = strdup(pwd.pw_name);
  

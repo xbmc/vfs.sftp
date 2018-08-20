@@ -1,7 +1,7 @@
 --- a/include/libssh/wrapper.h
 +++ b/include/libssh/wrapper.h
-@@ -52,7 +52,7 @@
- };
+@@ -56,7 +56,7 @@
+ struct ssh_cipher_struct;
  
  typedef struct ssh_mac_ctx_struct *ssh_mac_ctx;
 -MD5CTX md5_init(void);
@@ -11,16 +11,16 @@
  
 --- a/src/dh.c
 +++ b/src/dh.c
-@@ -918,7 +918,7 @@
-     return SSH_ERROR;
-   }
+@@ -964,7 +964,7 @@
+         return SSH_ERROR;
+     }
  
--  ctx = md5_init();
-+  ctx = ssh_md5_init();
-   if (ctx == NULL) {
-     SAFE_FREE(h);
-     return SSH_ERROR;
-@@ -1049,7 +1049,7 @@
+-    ctx = md5_init();
++    ctx = ssh_md5_init();
+     if (ctx == NULL) {
+         SAFE_FREE(h);
+         return SSH_ERROR;
+@@ -1152,7 +1152,7 @@
                  goto out;
              }
  
@@ -29,31 +29,20 @@
              if (ctx == NULL) {
                  free(h);
                  rc = -1;
---- a/src/kex1.c
-+++ b/src/kex1.c
-@@ -78,7 +78,7 @@
-     ssh_string hostn) {
-   MD5CTX md5 = NULL;
- 
--  md5 = md5_init();
-+  md5 = ssh_md5_init();
-   if (md5 == NULL) {
-     return -1;
-   }
 --- a/src/libcrypto.c
 +++ b/src/libcrypto.c
-@@ -234,7 +234,7 @@
-   SHA512(digest, len, hash);
+@@ -313,7 +313,7 @@
+     }
  }
  
--MD5CTX md5_init(void) {
-+MD5CTX ssh_md5_init(void) {
-   MD5CTX c = malloc(sizeof(*c));
-   if (c == NULL) {
-     return NULL;
+-MD5CTX md5_init(void)
++MD5CTX ssh_md5_init(void)
+ {
+     int rc;
+     MD5CTX c = EVP_MD_CTX_create();
 --- a/src/libgcrypt.c
 +++ b/src/libgcrypt.c
-@@ -132,7 +132,7 @@
+@@ -202,7 +202,7 @@
    gcry_md_hash_buffer(GCRY_MD_SHA512, hash, digest, len);
  }
  
@@ -62,3 +51,25 @@
    MD5CTX c = NULL;
    gcry_md_open(&c, GCRY_MD_MD5, 0);
  
+--- a/src/libmbedcrypto.c
++++ b/src/libmbedcrypto.c
+@@ -335,7 +335,7 @@
+     }
+ }
+ 
+-MD5CTX md5_init(void)
++MD5CTX ssh_md5_init(void)
+ {
+     MD5CTX ctx = NULL;
+     int rc;
+--- a/src/pki_gcrypt.c
++++ b/src/pki_gcrypt.c
+@@ -255,7 +255,7 @@
+   unsigned int md_not_empty;
+ 
+   for (j = 0, md_not_empty = 0; j < keylen; ) {
+-    md = md5_init();
++    md = ssh_md5_init();
+     if (md == NULL) {
+       return -1;
+     }

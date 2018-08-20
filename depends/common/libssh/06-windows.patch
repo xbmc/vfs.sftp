@@ -11,21 +11,7 @@
  #endif /* _WIN32 */
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -224,6 +224,7 @@
-   ${LIBSSH_PRIVATE_INCLUDE_DIRS}
- )
- 
-+if(NOT WIN32)
- add_library(${LIBSSH_SHARED_LIBRARY} SHARED ${libssh_SRCS})
- 
- target_link_libraries(${LIBSSH_SHARED_LIBRARY} ${LIBSSH_LINK_LIBRARIES})
-@@ -258,12 +259,13 @@
-   ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-   COMPONENT libraries
- )
-+endif()
- 
- if (WITH_STATIC_LIB)
+@@ -345,7 +345,7 @@
    add_library(${LIBSSH_STATIC_LIBRARY} STATIC ${libssh_SRCS})
  
    if (MSVC)
@@ -34,3 +20,13 @@
    else (MSVC)
      set(OUTPUT_SUFFIX )
    endif (MSVC)
+--- a/src/sftp.c
++++ b/src/sftp.c
+@@ -31,6 +31,7 @@
+ #include <fcntl.h>
+ #include <stdio.h>
+ #include <stdio.h>
++#include <stdint.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <limits.h>
