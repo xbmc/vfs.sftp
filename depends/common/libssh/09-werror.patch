@@ -1,0 +1,22 @@
+--- a/ConfigureChecks.cmake
++++ b/ConfigureChecks.cmake
+@@ -349,6 +349,9 @@
+     return 0;
+ }" HAVE_GCC_NARG_MACRO)
+ 
++# Stop treating warnings as errors
++unset(CMAKE_REQUIRED_FLAGS)
++
+ check_c_source_compiles("
+ #include <stdio.h>
+ int main(void) {
+@@ -363,9 +366,6 @@
+     return 0;
+ }" HAVE_COMPILER__FUNCTION__)
+ 
+-# Stop treating warnings as errors
+-unset(CMAKE_REQUIRED_FLAGS)
+-
+ check_c_source_compiles("
+ #define ARRAY_LEN 16
+ void test_attr(const unsigned char *k)
