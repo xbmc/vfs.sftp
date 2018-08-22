@@ -42,7 +42,7 @@ endif()
 
 if(CORE_SYSTEM_NAME MATCHES "ios")
   set(configure_command CC=${CMAKE_COMPILER} AR=${CMAKE_AR} INSTALL_PREFIX=""
-                        <SOURCE_DIR>/Configure iphoneos-cross zlib no-asm no-krb5
+                        <SOURCE_DIR>/Configure iphoneos-cross no-shared zlib no-asm no-krb5
                         --openssldir=${OUTPUT_DIR}
                         --install_prefix=""
       && sed -ie "s|CFLAG= |CFLAG=${CMAKE_C_FLAGS} |" ${PROJECT_SOURCE_DIR}/Makefile
@@ -69,8 +69,4 @@ externalproject_add(openssl
                     BUILD_IN_SOURCE 1)
 
 install(CODE "execute_process(COMMAND find ${CMAKE_SOURCE_DIR} -name Makefile -exec sed -ie s|INSTALL_PREFIX|stupidshit|g {} \;)
-              execute_process(COMMAND make install_sw WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-              execute_process(COMMAND rm -f ${OUTPUT_DIR}/lib/libcrypto.so* WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-              execute_process(COMMAND rm -f ${OUTPUT_DIR}/lib/libssl.so* WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-              execute_process(COMMAND rm -f ${OUTPUT_DIR}/lib/libcrypto*dylib* WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-              execute_process(COMMAND rm -f ${OUTPUT_DIR}/lib/libssl*dylib* WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})")
+              execute_process(COMMAND make install_sw WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})")
