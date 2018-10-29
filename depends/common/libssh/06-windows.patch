@@ -11,8 +11,8 @@
  #endif /* _WIN32 */
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -345,7 +345,7 @@
-   add_library(${LIBSSH_STATIC_LIBRARY} STATIC ${libssh_SRCS})
+@@ -347,7 +347,7 @@
+   target_compile_options(${LIBSSH_STATIC_LIBRARY} PRIVATE ${DEFAULT_C_COMPILE_FLAGS})
  
    if (MSVC)
 -    set(OUTPUT_SUFFIX static)
@@ -20,13 +20,31 @@
    else (MSVC)
      set(OUTPUT_SUFFIX )
    endif (MSVC)
---- a/src/sftp.c
-+++ b/src/sftp.c
-@@ -31,6 +31,7 @@
- #include <fcntl.h>
+--- a/src/connector.c
++++ b/src/connector.c
+@@ -33,6 +33,11 @@
+ #define CHUNKSIZE 4096
+ 
+ #ifdef _WIN32
++#ifdef _MSC_VER
++#ifndef ssize_t
++typedef intptr_t ssize_t;
++#endif /* ssize_t */
++#endif /* _MSC_VER */
+ # ifdef HAVE_IO_H
+ #  include <io.h>
+ #  undef open
+--- a/src/socket.c
++++ b/src/socket.c
+@@ -26,6 +26,11 @@
+ #include <errno.h>
  #include <stdio.h>
- #include <stdio.h>
-+#include <stdint.h>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <limits.h>
+ #ifdef _WIN32
++#ifdef _MSC_VER
++#ifndef ssize_t
++typedef intptr_t ssize_t;
++#endif /* ssize_t */
++#endif /* _MSC_VER */
+ #include <winsock2.h>
+ #include <ws2tcpip.h>
+ #if _MSC_VER >= 1400
