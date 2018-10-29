@@ -1,12 +1,11 @@
---- a/cmake/Modules/DefineCompilerFlags.cmake
-+++ b/cmake/Modules/DefineCompilerFlags.cmake
-@@ -73,7 +73,7 @@
-     #"deprecated" functions
-     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1")
-     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1")
--    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_NONSTDC_NO_WARNINGS=1 /D _CRT_SECURE_NO_WARNINGS=1")
-+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_NONSTDC_NO_WARNINGS=1 /D _CRT_SECURE_NO_WARNINGS=1 /D _WINSOCK_DEPRECATED_NO_WARNINGS=1")
- endif (MSVC)
+--- a/CompilerChecks.cmake
++++ b/CompilerChecks.cmake
+@@ -91,6 +91,7 @@
+     add_c_compiler_flag("/D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1" SUPPORTED_COMPILER_FLAGS)
+     add_c_compiler_flag("/D _CRT_NONSTDC_NO_WARNINGS=1" SUPPORTED_COMPILER_FLAGS)
+     add_c_compiler_flag("/D _CRT_SECURE_NO_WARNINGS=1" SUPPORTED_COMPILER_FLAGS)
++    add_c_compiler_flag("/D _WINSOCK_DEPRECATED_NO_WARNINGS=1" SUPPORTED_COMPILER_FLAGS)
+ endif()
  
  # This removes this annoying warning
 --- a/src/external/curve25519_ref.c
@@ -105,7 +104,7 @@
  }
 --- a/src/options.c
 +++ b/src/options.c
-@@ -1455,7 +1455,7 @@
+@@ -1491,7 +1491,7 @@
            int key_type;
            ssh_key key;
            ssh_key *bind_key_loc = NULL;
@@ -116,7 +115,7 @@
            if (rc != SSH_OK) {
 --- a/src/pki_container_openssh.c
 +++ b/src/pki_container_openssh.c
-@@ -160,7 +160,7 @@
+@@ -112,7 +112,7 @@
      char passphrase_buffer[128];
      size_t key_material_len;
      ssh_buffer buffer;

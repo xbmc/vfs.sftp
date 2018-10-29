@@ -1,6 +1,6 @@
 --- a/ConfigureChecks.cmake
 +++ b/ConfigureChecks.cmake
-@@ -349,6 +349,9 @@
+@@ -361,6 +361,9 @@
      return 0;
  }" HAVE_GCC_NARG_MACRO)
  
@@ -10,13 +10,13 @@
  check_c_source_compiles("
  #include <stdio.h>
  int main(void) {
-@@ -363,9 +366,6 @@
+@@ -384,9 +387,6 @@
      return 0;
- }" HAVE_COMPILER__FUNCTION__)
+ }" HAVE_GCC_BOUNDED_ATTRIBUTE)
  
 -# Stop treating warnings as errors
 -unset(CMAKE_REQUIRED_FLAGS)
 -
- check_c_source_compiles("
- #define ARRAY_LEN 16
- void test_attr(const unsigned char *k)
+ # Check for version script support
+ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/conftest.map" "VERS_1 {
+         global: sym;

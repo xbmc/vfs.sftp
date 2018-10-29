@@ -201,7 +201,16 @@ public:
 class CMyAddon : public kodi::addon::CAddonBase
 {
 public:
-  CMyAddon() { }
+  CMyAddon()
+  {
+    ssh_init();
+  }
+
+  ~CMyAddon()
+  {
+    ssh_finalize();
+  }
+
   virtual ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
   {
     addonInstance = new CSFTPFile(instance);

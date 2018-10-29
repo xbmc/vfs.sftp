@@ -9,8 +9,8 @@
 +#else
    struct passwd pwd;
    struct passwd *pwdbuf;
-   char buf[NSS_BUFLEN_PASSWD];
-@@ -233,6 +236,7 @@
+   char buf[NSS_BUFLEN_PASSWD] = {0};
+@@ -232,6 +235,7 @@
    }
  
    szPath = strdup(pwd.pw_dir);
@@ -18,7 +18,7 @@
  
    return szPath;
  }
-@@ -247,6 +251,17 @@
+@@ -246,6 +250,17 @@
  }
  
  char *ssh_get_local_username(void) {
@@ -36,7 +36,7 @@
      struct passwd pwd;
      struct passwd *pwdbuf;
      char buf[NSS_BUFLEN_PASSWD];
-@@ -260,6 +275,7 @@
+@@ -259,6 +274,7 @@
  
      name = strdup(pwd.pw_name);
  
