@@ -18,7 +18,7 @@
  *
  */
 
-#include "threads/mutex.h"
+#include <p8-platform/threads/mutex.h>
 #include <kodi/addon-instance/VFS.h>
 #include <kodi/General.h>
 #include "SFTPSession.h"
