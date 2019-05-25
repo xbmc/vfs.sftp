@@ -45,7 +45,7 @@ if(CORE_SYSTEM_NAME MATCHES "linux" OR CORE_SYSTEM_NAME MATCHES "rbpi")
   endif()
 endif()
 
-if(CORE_SYSTEM_NAME MATCHES "ios")
+if(CORE_SYSTEM_NAME MATCHES "darwin_embedded")
   set(configure_command CC=${CMAKE_COMPILER} AR=${CMAKE_AR} INSTALL_PREFIX=""
                         <SOURCE_DIR>/Configure iphoneos-cross no-shared zlib no-asm
                         --prefix=${OUTPUT_DIR}
