@@ -192,6 +192,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
           {
             localPath.append("/");
             entry.SetFolder(true);
+            entry.SetSize(0);
           }
           else
             entry.SetSize(attributes->size);
