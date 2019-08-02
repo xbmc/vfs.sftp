@@ -186,7 +186,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
           if (itemName[0] == '.')
             entry.AddProperty("file:hidden", "true");
 
-          entry.SetDateTime(attributes->mtime64);
+          entry.SetDateTime(attributes->mtime);
 
           if (attributes->type & SSH_FILEXFER_TYPE_DIRECTORY)
           {
