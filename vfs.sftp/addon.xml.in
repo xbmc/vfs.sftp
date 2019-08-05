@@ -7,7 +7,7 @@
   <requires>@ADDON_DEPENDS@</requires>
   <extension
     point="kodi.vfs"
-    protocols="sftp|ssh"
+    protocols="sftp"
     files="true"
     directories="true"
     supportDialog="true"
