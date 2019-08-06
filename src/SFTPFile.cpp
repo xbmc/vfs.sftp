@@ -192,7 +192,7 @@ public:
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     std::stringstream str;
     str << "sftp://" << url.username << ":" << url.password
-        << "@" << url.hostname << ":" << url.port << "/";
+        << "@" << url.hostname << ":" << (url.port ? url.port : 22) << "/";
 
     return session->GetDirectory(str.str(), url.filename, items);
   }

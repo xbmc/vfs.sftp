@@ -498,18 +498,23 @@ CSFTPSessionManager& CSFTPSessionManager::Get()
 
 CSFTPSessionPtr CSFTPSessionManager::CreateSession(const VFSURL& url)
 {
+  VFSURL url2 = url;
+  // Check if url contains port, else fallback to 22 (default)
+  if (url2.port == 0)
+    url2.port = 22;
+
   // Convert port number to string
   std::stringstream itoa;
-  itoa << (url.port ? url.port : 22);
+  itoa << url2.port;
   std::string portstr = itoa.str();
 
   P8PLATFORM::CLockObject lock(m_lock);
-  std::string key = std::string(url.username) + ":" +
-                    url.password + "@" + url.hostname + ":" + portstr;
+  std::string key = std::string(url2.username) + ":" +
+                    url2.password + "@" + url2.hostname + ":" + portstr;
   CSFTPSessionPtr ptr = sessions[key];
   if (ptr == NULL)
   {
-    ptr = CSFTPSessionPtr(new CSFTPSession(url));
+    ptr = CSFTPSessionPtr(new CSFTPSession(url2));
     sessions[key] = ptr;
   }
 
