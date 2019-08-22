@@ -1,0 +1,70 @@
+--- a/include/libssh/socket.h
++++ b/include/libssh/socket.h
+@@ -22,6 +22,11 @@
+ #define SOCKET_H_
+ 
+ #include "libssh/callbacks.h"
++
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
++
+ struct ssh_poll_handle_struct;
+ /* socket.c */
+ 
+@@ -37,9 +42,11 @@
+ socket_t ssh_socket_get_fd_in(ssh_socket s);
+ #ifndef _WIN32
+ int ssh_socket_unix(ssh_socket s, const char *path);
++#if !defined(TARGET_OS_TV)
+ void ssh_execute_command(const char *command, socket_t in, socket_t out);
+ int ssh_socket_connect_proxycommand(ssh_socket s, const char *command);
+ #endif
++#endif
+ void ssh_socket_close(ssh_socket s);
+ int ssh_socket_write(ssh_socket s,const void *buffer, int len);
+ int ssh_socket_is_open(ssh_socket s);
+--- a/src/client.c
++++ b/src/client.c
+@@ -44,6 +44,10 @@
+ #include "libssh/pki.h"
+ #include "libssh/kex.h"
+ 
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
++
+ #define set_status(session, status) do {\
+         if (session->common.callbacks && session->common.callbacks->connect_status_function) \
+             session->common.callbacks->connect_status_function(session->common.callbacks->userdata, status); \
+@@ -536,7 +540,7 @@
+     session->session_state=SSH_SESSION_STATE_SOCKET_CONNECTED;
+     ssh_socket_set_fd(session->socket, session->opts.fd);
+     ret=SSH_OK;
+-#ifndef _WIN32
++#if !defined(_WIN32) && !defined(TARGET_OS_TV)
+   } else if (session->opts.ProxyCommand != NULL){
+     ret = ssh_socket_connect_proxycommand(session->socket,
+                                           session->opts.ProxyCommand);
+--- a/src/socket.c
++++ b/src/socket.c
+@@ -58,6 +58,10 @@
+ #include "libssh/poll.h"
+ #include "libssh/session.h"
+ 
++#if defined(__APPLE__)
++#include <TargetConditionals.h>
++#endif
++
+ /**
+  * @internal
+  *
+@@ -871,7 +875,7 @@
+ 	return SSH_OK;
+ }
+ 
+-#ifndef _WIN32
++#if !defined(_WIN32) && !defined(TARGET_OS_TV)
+ /**
+  * @internal
+  * @brief executes a command and redirect input and outputs
