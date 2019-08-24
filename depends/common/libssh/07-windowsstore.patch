@@ -1,6 +1,6 @@
 --- a/CompilerChecks.cmake
 +++ b/CompilerChecks.cmake
-@@ -91,6 +91,7 @@
+@@ -105,6 +105,7 @@
      add_c_compiler_flag("/D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1" SUPPORTED_COMPILER_FLAGS)
      add_c_compiler_flag("/D _CRT_NONSTDC_NO_WARNINGS=1" SUPPORTED_COMPILER_FLAGS)
      add_c_compiler_flag("/D _CRT_SECURE_NO_WARNINGS=1" SUPPORTED_COMPILER_FLAGS)
@@ -104,7 +104,7 @@
  }
 --- a/src/options.c
 +++ b/src/options.c
-@@ -1491,7 +1491,7 @@
+@@ -1667,7 +1667,7 @@
            int key_type;
            ssh_key key;
            ssh_key *bind_key_loc = NULL;

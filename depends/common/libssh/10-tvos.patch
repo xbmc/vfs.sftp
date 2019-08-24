@@ -13,7 +13,7 @@
  /* socket.c */
  
 @@ -37,9 +42,11 @@
- socket_t ssh_socket_get_fd_in(ssh_socket s);
+ socket_t ssh_socket_get_fd(ssh_socket s);
  #ifndef _WIN32
  int ssh_socket_unix(ssh_socket s, const char *path);
 +#if !defined(TARGET_OS_TV)
@@ -26,7 +26,7 @@
  int ssh_socket_is_open(ssh_socket s);
 --- a/src/client.c
 +++ b/src/client.c
-@@ -44,6 +44,10 @@
+@@ -47,6 +47,10 @@
  #include "libssh/pki.h"
  #include "libssh/kex.h"
  
@@ -37,7 +37,7 @@
  #define set_status(session, status) do {\
          if (session->common.callbacks && session->common.callbacks->connect_status_function) \
              session->common.callbacks->connect_status_function(session->common.callbacks->userdata, status); \
-@@ -536,7 +540,7 @@
+@@ -563,7 +567,7 @@
      session->session_state=SSH_SESSION_STATE_SOCKET_CONNECTED;
      ssh_socket_set_fd(session->socket, session->opts.fd);
      ret=SSH_OK;
@@ -59,8 +59,8 @@
  /**
   * @internal
   *
-@@ -871,7 +875,7 @@
- 	return SSH_OK;
+@@ -832,7 +836,7 @@
+     return SSH_OK;
  }
  
 -#ifndef _WIN32
