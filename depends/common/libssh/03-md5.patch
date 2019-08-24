@@ -1,7 +1,7 @@
 --- a/include/libssh/wrapper.h
 +++ b/include/libssh/wrapper.h
-@@ -63,7 +63,7 @@
- struct ssh_cipher_struct;
+@@ -74,7 +74,7 @@
+ struct ssh_crypto_struct;
  
  typedef struct ssh_mac_ctx_struct *ssh_mac_ctx;
 -MD5CTX md5_init(void);
@@ -9,29 +9,9 @@
  void md5_update(MD5CTX c, const void *data, unsigned long len);
  void md5_final(unsigned char *md,MD5CTX c);
  
---- a/src/dh.c
-+++ b/src/dh.c
-@@ -1196,7 +1196,7 @@
-         return SSH_ERROR;
-     }
- 
--    ctx = md5_init();
-+    ctx = ssh_md5_init();
-     if (ctx == NULL) {
-         SAFE_FREE(h);
-         return SSH_ERROR;
-@@ -1407,7 +1407,7 @@
-                 goto out;
-             }
- 
--            ctx = md5_init();
-+            ctx = ssh_md5_init();
-             if (ctx == NULL) {
-                 free(h);
-                 rc = -1;
 --- a/src/libcrypto.c
 +++ b/src/libcrypto.c
-@@ -313,7 +313,7 @@
+@@ -316,7 +316,7 @@
      }
  }
  
@@ -42,7 +22,7 @@
      MD5CTX c = EVP_MD_CTX_create();
 --- a/src/libgcrypt.c
 +++ b/src/libgcrypt.c
-@@ -202,7 +202,7 @@
+@@ -198,7 +198,7 @@
    gcry_md_hash_buffer(GCRY_MD_SHA512, hash, digest, len);
  }
  
@@ -64,7 +44,7 @@
      int rc;
 --- a/src/pki_gcrypt.c
 +++ b/src/pki_gcrypt.c
-@@ -255,7 +255,7 @@
+@@ -256,7 +256,7 @@
    unsigned int md_not_empty;
  
    for (j = 0, md_not_empty = 0; j < keylen; ) {
@@ -73,3 +53,23 @@
      if (md == NULL) {
        return -1;
      }
+--- a/src/session.c
++++ b/src/session.c
+@@ -987,7 +987,7 @@
+         return SSH_ERROR;
+     }
+ 
+-    ctx = md5_init();
++    ctx = ssh_md5_init();
+     if (ctx == NULL) {
+         SAFE_FREE(h);
+         return SSH_ERROR;
+@@ -1177,7 +1177,7 @@
+                 goto out;
+             }
+ 
+-            ctx = md5_init();
++            ctx = ssh_md5_init();
+             if (ctx == NULL) {
+                 free(h);
+                 rc = -1;

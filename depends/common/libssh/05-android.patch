@@ -2,26 +2,26 @@
 +++ b/src/misc.c
 @@ -215,6 +215,9 @@
  
- char *ssh_get_user_home_dir(void) {
-   char *szPath = NULL;
+ char *ssh_get_user_home_dir(void)
+ {
 +#ifdef ANDROID
 +  return strdup(getenv("HOME"));
 +#else
-   struct passwd pwd;
-   struct passwd *pwdbuf;
-   char buf[NSS_BUFLEN_PASSWD] = {0};
-@@ -232,6 +235,7 @@
-   }
+     char *szPath = NULL;
+     struct passwd pwd;
+     struct passwd *pwdbuf = NULL;
+@@ -235,6 +238,7 @@
+     szPath = strdup(pwd.pw_dir);
  
-   szPath = strdup(pwd.pw_dir);
+     return szPath;
 +#endif
- 
-   return szPath;
- }
-@@ -246,6 +250,17 @@
  }
  
- char *ssh_get_local_username(void) {
+ /* we have read access on file */
+@@ -249,6 +253,17 @@
+ 
+ char *ssh_get_local_username(void)
+ {
 +#ifdef ANDROID
 +    char *name = NULL;
 +    struct passwd *pwd = NULL;
@@ -34,9 +34,9 @@
 +
 +#else
      struct passwd pwd;
-     struct passwd *pwdbuf;
+     struct passwd *pwdbuf = NULL;
      char buf[NSS_BUFLEN_PASSWD];
-@@ -259,6 +274,7 @@
+@@ -262,6 +277,7 @@
  
      name = strdup(pwd.pw_name);
  
