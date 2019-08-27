@@ -1,18 +1,18 @@
 --- a/ConfigureChecks.cmake
 +++ b/ConfigureChecks.cmake
-@@ -361,6 +361,9 @@
-     return 0;
- }" HAVE_GCC_NARG_MACRO)
+@@ -380,6 +380,9 @@
+     }" HAVE_UNUSED_ATTRIBUTE)
+ endif()
  
 +# Stop treating warnings as errors
 +unset(CMAKE_REQUIRED_FLAGS)
 +
  check_c_source_compiles("
- #include <stdio.h>
- int main(void) {
-@@ -384,9 +387,6 @@
-     return 0;
+ #include <string.h>
+ 
+@@ -418,9 +421,6 @@
  }" HAVE_GCC_BOUNDED_ATTRIBUTE)
+ endif(OPENBSD)
  
 -# Stop treating warnings as errors
 -unset(CMAKE_REQUIRED_FLAGS)
