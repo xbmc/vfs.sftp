@@ -18,13 +18,13 @@
  *
  */
 
-#include <p8-platform/threads/mutex.h>
 #include <chrono>
+#include <kodi/addon-instance/VFS.h>
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
-#include "kodi/addon-instance/VFS.h"
-#include <memory>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -50,7 +50,7 @@ private:
   bool Connect(const VFSURL& url);
   void Disconnect();
   bool GetItemPermissions(const char *path, uint32_t &permissions);
-  P8PLATFORM::CMutex m_lock;
+  std::recursive_mutex m_lock;
 
   bool m_connected;
   ssh_session  m_session;
@@ -70,6 +70,6 @@ public:
 private:
   CSFTPSessionManager() {}
   CSFTPSessionManager& operator=(const CSFTPSessionManager&);
-  P8PLATFORM::CMutex m_lock;
+  std::recursive_mutex m_lock;
   std::map<std::string, CSFTPSessionPtr> sessions;
 };

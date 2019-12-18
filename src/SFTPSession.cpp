@@ -19,7 +19,6 @@
  */
 
 #include "SFTPSession.h"
-#include <p8-platform/util/timeutils.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -82,7 +81,7 @@ static const char * SFTPErrorText(int sftp_error)
 CSFTPSession::CSFTPSession(const VFSURL& url)
 {
   kodi::Log(ADDON_LOG_INFO, "SFTPSession: Creating new session on host '%s:%d' with user '%s'", url.hostname, url.port, url.username);
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   if (!Connect(url))
     Disconnect();
 
@@ -91,7 +90,7 @@ CSFTPSession::CSFTPSession(const VFSURL& url)
 
 CSFTPSession::~CSFTPSession()
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   Disconnect();
 }
 
@@ -99,7 +98,7 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file)
 {
   if (m_connected)
   {
-    P8PLATFORM::CLockObject lock(m_lock);
+    std::unique_lock<std::recursive_mutex> lock(m_lock);
     m_LastActive = std::chrono::high_resolution_clock::now();
     sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), O_RDONLY, 0);
     if (handle)
@@ -118,7 +117,7 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file)
 
 void CSFTPSession::CloseFileHandle(sftp_file handle)
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   sftp_close(handle);
 }
 
@@ -130,7 +129,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
   {
     sftp_dir dir = NULL;
 
-    P8PLATFORM::CLockObject lock(m_lock);
+    std::unique_lock<std::recursive_mutex> lock(m_lock);
     m_LastActive = std::chrono::high_resolution_clock::now();
     dir = sftp_opendir(m_sftp_session, CorrectPath(folder).c_str());
 
@@ -138,7 +137,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
     if (!dir)
       sftp_error = sftp_get_error(m_sftp_session);
 
-    lock.Unlock();
+    lock.unlock();
 
     if (!dir)
     {
@@ -151,16 +150,16 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
       {
         sftp_attributes attributes = NULL;
 
-        lock.Lock();
+        lock.lock();
         read = sftp_dir_eof(dir) == 0;
         attributes = sftp_readdir(m_sftp_session, dir);
-        lock.Unlock();
+        lock.unlock();
 
         if (attributes && (attributes->name == NULL || strcmp(attributes->name, "..") == 0 || strcmp(attributes->name, ".") == 0))
         {
-          lock.Lock();
+          lock.lock();
           sftp_attributes_free(attributes);
-          lock.Unlock();
+          lock.unlock();
           continue;
         }
 
@@ -172,10 +171,10 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
 
           if (attributes->type == SSH_FILEXFER_TYPE_SYMLINK)
           {
-            lock.Lock();
+            lock.lock();
             sftp_attributes_free(attributes);
             attributes = sftp_stat(m_sftp_session, CorrectPath(localPath).c_str());
-            lock.Unlock();
+            lock.unlock();
             if (attributes == NULL)
               continue;
           }
@@ -200,17 +199,17 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
           entry.SetPath(base+localPath);
           items.push_back(entry);
 
-          lock.Lock();
+          lock.lock();
           sftp_attributes_free(attributes);
-          lock.Unlock();
+          lock.unlock();
         }
         else
           read = false;
       }
 
-      lock.Lock();
+      lock.lock();
       sftp_closedir(dir);
-      lock.Unlock();
+      lock.unlock();
 
       return true;
     }
@@ -241,7 +240,7 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 {
   if(m_connected)
   {
-    P8PLATFORM::CLockObject lock(m_lock);
+    std::unique_lock<std::recursive_mutex> lock(m_lock);
     m_LastActive = std::chrono::high_resolution_clock::now();
     sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
 
@@ -275,7 +274,7 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 
 int CSFTPSession::Seek(sftp_file handle, uint64_t position)
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
   int result = sftp_seek64(handle, position);
   return result;
@@ -283,7 +282,7 @@ int CSFTPSession::Seek(sftp_file handle, uint64_t position)
 
 int CSFTPSession::Read(sftp_file handle, void *buffer, size_t length)
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
   int result=sftp_read(handle, buffer, length);
   return result;
@@ -291,7 +290,7 @@ int CSFTPSession::Read(sftp_file handle, void *buffer, size_t length)
 
 int64_t CSFTPSession::GetPosition(sftp_file handle)
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
   int64_t result = sftp_tell64(handle);
   return result;
@@ -473,7 +472,7 @@ void CSFTPSession::Disconnect()
 bool CSFTPSession::GetItemPermissions(const char *path, uint32_t &permissions)
 {
   bool gotPermissions = false;
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   if(m_connected)
   {
     sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
@@ -510,7 +509,7 @@ CSFTPSessionPtr CSFTPSessionManager::CreateSession(const VFSURL& url)
   itoa << url2.port;
   std::string portstr = itoa.str();
 
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   std::string key = std::string(url2.username) + ":" +
                     url2.password + "@" + url2.hostname + ":" + portstr;
   CSFTPSessionPtr ptr = sessions[key];
@@ -525,7 +524,7 @@ CSFTPSessionPtr CSFTPSessionManager::CreateSession(const VFSURL& url)
 
 void CSFTPSessionManager::ClearOutIdleSessions()
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   for(std::map<std::string, CSFTPSessionPtr>::iterator iter = sessions.begin(); iter != sessions.end();)
   {
     if (iter->second->IsIdle())
@@ -537,6 +536,6 @@ void CSFTPSessionManager::ClearOutIdleSessions()
 
 void CSFTPSessionManager::DisconnectAllSessions()
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   sessions.clear();
 }
