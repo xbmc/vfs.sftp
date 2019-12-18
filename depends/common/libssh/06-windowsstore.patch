@@ -1,16 +1,6 @@
---- a/CompilerChecks.cmake
-+++ b/CompilerChecks.cmake
-@@ -105,6 +105,7 @@
-     add_c_compiler_flag("/D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1" SUPPORTED_COMPILER_FLAGS)
-     add_c_compiler_flag("/D _CRT_NONSTDC_NO_WARNINGS=1" SUPPORTED_COMPILER_FLAGS)
-     add_c_compiler_flag("/D _CRT_SECURE_NO_WARNINGS=1" SUPPORTED_COMPILER_FLAGS)
-+    add_c_compiler_flag("/D _WINSOCK_DEPRECATED_NO_WARNINGS=1" SUPPORTED_COMPILER_FLAGS)
- endif()
- 
- # This removes this annoying warning
 --- a/src/external/curve25519_ref.c
 +++ b/src/external/curve25519_ref.c
-@@ -61,7 +61,14 @@
+@@ -61,7 +61,14 @@ static void freeze(unsigned int a[32])
  
    for (j = 0;j < 32;++j) aorig[j] = a[j];
    add(a,a,minusp);
@@ -27,7 +17,7 @@
  
 --- a/src/external/fe25519.c
 +++ b/src/external/fe25519.c
-@@ -87,7 +87,14 @@
+@@ -87,7 +87,14 @@ void fe25519_freeze(fe25519 *r)
      }
      m &= ge(r->v[0],237);
  
@@ -42,7 +32,7 @@
  
      r->v[31] -= m&127;
      for (i = 30; i > 0; i--) {
-@@ -159,7 +166,14 @@
+@@ -159,7 +166,14 @@ void fe25519_cmov(fe25519 *r, const fe25519 *x, unsigned char b)
      int i;
      uint32_t mask = b;
  
@@ -78,7 +68,7 @@
    char tmp[MAX_PATH] = {0};
    char *szPath = NULL;
  
-@@ -117,6 +122,7 @@
+@@ -117,6 +122,7 @@ char *ssh_get_user_home_dir(void) {
      strcpy(szPath, tmp);
      return szPath;
    }
@@ -86,7 +76,7 @@
  
    return NULL;
  }
-@@ -147,6 +153,7 @@
+@@ -172,6 +178,7 @@ int gettimeofday(struct timeval *__p, void *__t) {
  }
  
  char *ssh_get_local_username(void) {
@@ -94,7 +84,7 @@
      DWORD size = 0;
      char *user;
  
-@@ -161,6 +168,7 @@
+@@ -186,6 +193,7 @@ char *ssh_get_local_username(void) {
      if (GetUserName(user, &size)) {
          return user;
      }
@@ -104,7 +94,7 @@
  }
 --- a/src/options.c
 +++ b/src/options.c
-@@ -1667,7 +1667,7 @@
+@@ -1674,7 +1674,7 @@ int ssh_bind_options_set(ssh_bind sshbind, enum ssh_bind_options_e type,
            int key_type;
            ssh_key key;
            ssh_key *bind_key_loc = NULL;
@@ -113,14 +103,4 @@
  
            rc = ssh_pki_import_privkey_file(value, NULL, NULL, NULL, &key);
            if (rc != SSH_OK) {
---- a/src/pki_container_openssh.c
-+++ b/src/pki_container_openssh.c
-@@ -112,7 +112,7 @@
-     char passphrase_buffer[128];
-     size_t key_material_len;
-     ssh_buffer buffer;
--    ssh_string salt;
-+    ssh_string salt = NULL;
-     uint32_t rounds;
-     int cmp;
-     int rc;
+
