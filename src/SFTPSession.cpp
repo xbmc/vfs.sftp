@@ -305,6 +305,35 @@ bool CSFTPSession::IsIdle()
 
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
 {
+#if !(LIBSSH_VERSION_MAJOR == 0 && LIBSSH_VERSION_MINOR < 8)
+  // Code used on libssh 0.8.0 and above
+  // See https://api.libssh.org/stable/deprecated.html
+  switch (ssh_session_is_known_server(session))
+  {
+    case SSH_KNOWN_HOSTS_OK:
+      return true;
+    case SSH_KNOWN_HOSTS_CHANGED:
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Server that was known has changed");
+      return false;
+    case SSH_KNOWN_HOSTS_OTHER:
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: The host key for this server was not found but an other type of key exists. An attacker might change the default server key to confuse your client into thinking the key does not exist");
+      return false;
+    case SSH_KNOWN_HOSTS_NOT_FOUND:
+      kodi::Log(ADDON_LOG_INFO, "SFTPSession: Server file was not found, creating a new one");
+    case SSH_KNOWN_HOSTS_UNKNOWN:
+      kodi::Log(ADDON_LOG_INFO, "SFTPSession: Server unkown, we trust it for now");
+      if (ssh_session_update_known_hosts(session) != SSH_OK)
+      {
+        kodi::Log(ADDON_LOG_ERROR, "CSFTPSession: Failed to save host '%s'", strerror(errno));
+        return false;
+      }
+
+      return true;
+    case SSH_KNOWN_HOSTS_ERROR:
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to verify host '%s'", ssh_get_error(session));
+      return false;
+  }
+#else
   switch (ssh_is_server_known(session))
   {
     case SSH_SERVER_KNOWN_OK:
@@ -330,6 +359,7 @@ bool CSFTPSession::VerifyKnownHost(ssh_session session)
       kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to verify host '%s'", ssh_get_error(session));
       return false;
   }
+#endif
 
   return false;
 }
