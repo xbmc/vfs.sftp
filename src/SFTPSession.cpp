@@ -86,7 +86,7 @@ CSFTPSession::CSFTPSession(const VFSURL& url)
   if (!Connect(url))
     Disconnect();
 
-  m_LastActive = P8PLATFORM::GetTimeMs();
+  m_LastActive = std::chrono::high_resolution_clock::now();
 }
 
 CSFTPSession::~CSFTPSession()
@@ -100,7 +100,7 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file)
   if (m_connected)
   {
     P8PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = P8PLATFORM::GetTimeMs();
+    m_LastActive = std::chrono::high_resolution_clock::now();
     sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), O_RDONLY, 0);
     if (handle)
     {
@@ -131,7 +131,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
     sftp_dir dir = NULL;
 
     P8PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = P8PLATFORM::GetTimeMs();
+    m_LastActive = std::chrono::high_resolution_clock::now();
     dir = sftp_opendir(m_sftp_session, CorrectPath(folder).c_str());
 
     //Doing as little work as possible within the critical section
@@ -242,7 +242,7 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
   if(m_connected)
   {
     P8PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = P8PLATFORM::GetTimeMs();
+    m_LastActive = std::chrono::high_resolution_clock::now();
     sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
 
     if (attributes)
@@ -276,7 +276,7 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 int CSFTPSession::Seek(sftp_file handle, uint64_t position)
 {
   P8PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = P8PLATFORM::GetTimeMs();
+  m_LastActive = std::chrono::high_resolution_clock::now();
   int result = sftp_seek64(handle, position);
   return result;
 }
@@ -284,7 +284,7 @@ int CSFTPSession::Seek(sftp_file handle, uint64_t position)
 int CSFTPSession::Read(sftp_file handle, void *buffer, size_t length)
 {
   P8PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = P8PLATFORM::GetTimeMs();
+  m_LastActive = std::chrono::high_resolution_clock::now();
   int result=sftp_read(handle, buffer, length);
   return result;
 }
@@ -292,14 +292,15 @@ int CSFTPSession::Read(sftp_file handle, void *buffer, size_t length)
 int64_t CSFTPSession::GetPosition(sftp_file handle)
 {
   P8PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = P8PLATFORM::GetTimeMs();
+  m_LastActive = std::chrono::high_resolution_clock::now();
   int64_t result = sftp_tell64(handle);
   return result;
 }
 
 bool CSFTPSession::IsIdle()
 {
-  return (P8PLATFORM::GetTimeMs() - m_LastActive) > 90000;
+  std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+  return static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(now - m_LastActive).count()) > 90000;
 }
 
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
