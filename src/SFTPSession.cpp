@@ -113,7 +113,7 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file)
   else
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Not connected and can't create file handle for '%s'", file.c_str());
 
-  return NULL;
+  return nullptr;
 }
 
 void CSFTPSession::CloseFileHandle(sftp_file handle)
@@ -128,7 +128,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
   int sftp_error = SSH_FX_OK;
   if (m_connected)
   {
-    sftp_dir dir = NULL;
+    sftp_dir dir = nullptr;
 
     std::unique_lock<std::recursive_mutex> lock(m_lock);
     m_LastActive = std::chrono::high_resolution_clock::now();
@@ -149,14 +149,14 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
       bool read = true;
       while (read)
       {
-        sftp_attributes attributes = NULL;
+        sftp_attributes attributes = nullptr;
 
         lock.lock();
         read = sftp_dir_eof(dir) == 0;
         attributes = sftp_readdir(m_sftp_session, dir);
         lock.unlock();
 
-        if (attributes && (attributes->name == NULL || strcmp(attributes->name, "..") == 0 || strcmp(attributes->name, ".") == 0))
+        if (attributes && (attributes->name == nullptr || strcmp(attributes->name, "..") == 0 || strcmp(attributes->name, ".") == 0))
         {
           lock.lock();
           sftp_attributes_free(attributes);
@@ -176,7 +176,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
             sftp_attributes_free(attributes);
             attributes = sftp_stat(m_sftp_session, CorrectPath(localPath).c_str());
             lock.unlock();
-            if (attributes == NULL)
+            if (attributes == nullptr)
               continue;
           }
 
@@ -368,11 +368,11 @@ bool CSFTPSession::Connect(const VFSURL& url)
 {
   int timeout     = SFTP_TIMEOUT;
   m_connected     = false;
-  m_session       = NULL;
-  m_sftp_session  = NULL;
+  m_session       = nullptr;
+  m_sftp_session  = nullptr;
 
   m_session=ssh_new();
-  if (m_session == NULL)
+  if (m_session == nullptr)
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize session for host '%s'", url.hostname);
     return false;
@@ -421,17 +421,17 @@ bool CSFTPSession::Connect(const VFSURL& url)
   }
 
   int noAuth = SSH_AUTH_DENIED;
-  if ((noAuth = ssh_userauth_none(m_session, NULL)) == SSH_AUTH_ERROR)
+  if ((noAuth = ssh_userauth_none(m_session, nullptr)) == SSH_AUTH_ERROR)
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to authenticate via guest '%s'", ssh_get_error(m_session));
     return false;
   }
 
-  int method = ssh_userauth_list(m_session, NULL);
+  int method = ssh_userauth_list(m_session, nullptr);
 
   // Try to authenticate with public key first
   int publicKeyAuth = SSH_AUTH_DENIED;
-  if (method & SSH_AUTH_METHOD_PUBLICKEY && (publicKeyAuth = ssh_userauth_publickey_auto(m_session, NULL, NULL)) == SSH_AUTH_ERROR)
+  if (method & SSH_AUTH_METHOD_PUBLICKEY && (publicKeyAuth = ssh_userauth_publickey_auto(m_session, nullptr, nullptr)) == SSH_AUTH_ERROR)
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to authenticate via publickey '%s'", ssh_get_error(m_session));
     return false;
@@ -457,7 +457,7 @@ bool CSFTPSession::Connect(const VFSURL& url)
   {
     m_sftp_session = sftp_new(m_session);
 
-    if (m_sftp_session == NULL)
+    if (m_sftp_session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize channel '%s'", ssh_get_error(m_session));
       return false;
@@ -490,8 +490,8 @@ void CSFTPSession::Disconnect()
     ssh_free(m_session);
   }
 
-  m_sftp_session = NULL;
-  m_session = NULL;
+  m_sftp_session = nullptr;
+  m_session = nullptr;
 }
 
 /*!
@@ -544,7 +544,7 @@ CSFTPSessionPtr CSFTPSessionManager::CreateSession(const VFSURL& url)
   std::string key = std::string(url2.username) + ":" +
                     url2.password + "@" + url2.hostname + ":" + portstr;
   CSFTPSessionPtr ptr = sessions[key];
-  if (ptr == NULL)
+  if (ptr == nullptr)
   {
     ptr = CSFTPSessionPtr(new CSFTPSession(url2));
     sessions[key] = ptr;
