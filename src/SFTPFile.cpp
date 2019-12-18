@@ -25,7 +25,7 @@
 #include <map>
 #include <sstream>
 
-class CSFTPFile : public kodi::addon::CInstanceVFS
+class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
 {
   struct SFTPContext
   {
@@ -197,7 +197,7 @@ public:
   }
 };
 
-class CMyAddon : public kodi::addon::CAddonBase
+class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
 {
 public:
   CMyAddon()
