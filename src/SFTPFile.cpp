@@ -59,7 +59,7 @@ public:
 
   ssize_t Read(void* context, void* buffer, size_t uiBufSize) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx && ctx->session && ctx->sftp_handle)
     {
       int rc = ctx->session->Read(ctx->sftp_handle, buffer, uiBufSize);
@@ -77,7 +77,7 @@ public:
 
   int64_t Seek(void* context, int64_t iFilePosition, int whence) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx && ctx->session && ctx->sftp_handle)
     {
       uint64_t position = 0;
@@ -102,7 +102,7 @@ public:
 
   int64_t GetLength(void* context) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     struct __stat64 buffer;
     if (ctx->session->Stat(ctx->file.c_str(), &buffer) != 0)
       return 0;
@@ -112,7 +112,7 @@ public:
 
   int64_t GetPosition(void* context) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx->session && ctx->sftp_handle)
       return ctx->session->GetPosition(ctx->sftp_handle);
 
@@ -142,7 +142,7 @@ public:
 
   bool Close(void* context) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx->session && ctx->sftp_handle)
       ctx->session->CloseFileHandle(ctx->sftp_handle);
     delete ctx;
