@@ -1,6 +1,6 @@
 --- a/CompilerChecks.cmake
 +++ b/CompilerChecks.cmake
-@@ -66,20 +66,20 @@
+@@ -67,20 +67,20 @@ if (UNIX)
          endif()
      endif()
  

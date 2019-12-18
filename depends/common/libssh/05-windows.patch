@@ -1,6 +1,6 @@
 --- a/include/libssh/sftp.h
 +++ b/include/libssh/sftp.h
-@@ -57,7 +57,7 @@
+@@ -57,7 +57,7 @@ extern "C" {
  # ifndef _SSIZE_T_DEFINED
  #  undef ssize_t
  #  include <BaseTsd.h>
@@ -11,8 +11,8 @@
  
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -372,7 +372,7 @@
-                             -D_GNU_SOURCE)
+@@ -384,7 +384,7 @@ if (BUILD_STATIC_LIB)
+   add_library(ssh::static ALIAS ssh-static)
  
    if (MSVC)
 -    set(OUTPUT_SUFFIX static)
@@ -48,3 +48,4 @@
  #include <winsock2.h>
  #include <ws2tcpip.h>
  #if _MSC_VER >= 1400
+
