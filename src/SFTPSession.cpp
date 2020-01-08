@@ -1,6 +1,6 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
- *      http://xbmc.org
+ *      Copyright (C) 2005-2019 Team Kodi
+ *      https://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,13 +13,13 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, see
+ *  along with Kodi; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
  */
 
 #include "SFTPSession.h"
-#include <p8-platform/util/timeutils.h>
+
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -82,16 +82,16 @@ static const char * SFTPErrorText(int sftp_error)
 CSFTPSession::CSFTPSession(const VFSURL& url)
 {
   kodi::Log(ADDON_LOG_INFO, "SFTPSession: Creating new session on host '%s:%d' with user '%s'", url.hostname, url.port, url.username);
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   if (!Connect(url))
     Disconnect();
 
-  m_LastActive = P8PLATFORM::GetTimeMs();
+  m_LastActive = std::chrono::high_resolution_clock::now();
 }
 
 CSFTPSession::~CSFTPSession()
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   Disconnect();
 }
 
@@ -99,8 +99,8 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file)
 {
   if (m_connected)
   {
-    P8PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = P8PLATFORM::GetTimeMs();
+    std::unique_lock<std::recursive_mutex> lock(m_lock);
+    m_LastActive = std::chrono::high_resolution_clock::now();
     sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), O_RDONLY, 0);
     if (handle)
     {
@@ -113,12 +113,12 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file)
   else
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Not connected and can't create file handle for '%s'", file.c_str());
 
-  return NULL;
+  return nullptr;
 }
 
 void CSFTPSession::CloseFileHandle(sftp_file handle)
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   sftp_close(handle);
 }
 
@@ -128,17 +128,17 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
   int sftp_error = SSH_FX_OK;
   if (m_connected)
   {
-    sftp_dir dir = NULL;
+    sftp_dir dir = nullptr;
 
-    P8PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = P8PLATFORM::GetTimeMs();
+    std::unique_lock<std::recursive_mutex> lock(m_lock);
+    m_LastActive = std::chrono::high_resolution_clock::now();
     dir = sftp_opendir(m_sftp_session, CorrectPath(folder).c_str());
 
     //Doing as little work as possible within the critical section
     if (!dir)
       sftp_error = sftp_get_error(m_sftp_session);
 
-    lock.Unlock();
+    lock.unlock();
 
     if (!dir)
     {
@@ -149,18 +149,18 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
       bool read = true;
       while (read)
       {
-        sftp_attributes attributes = NULL;
+        sftp_attributes attributes = nullptr;
 
-        lock.Lock();
+        lock.lock();
         read = sftp_dir_eof(dir) == 0;
         attributes = sftp_readdir(m_sftp_session, dir);
-        lock.Unlock();
+        lock.unlock();
 
-        if (attributes && (attributes->name == NULL || strcmp(attributes->name, "..") == 0 || strcmp(attributes->name, ".") == 0))
+        if (attributes && (attributes->name == nullptr || strcmp(attributes->name, "..") == 0 || strcmp(attributes->name, ".") == 0))
         {
-          lock.Lock();
+          lock.lock();
           sftp_attributes_free(attributes);
-          lock.Unlock();
+          lock.unlock();
           continue;
         }
 
@@ -172,11 +172,11 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
 
           if (attributes->type == SSH_FILEXFER_TYPE_SYMLINK)
           {
-            lock.Lock();
+            lock.lock();
             sftp_attributes_free(attributes);
             attributes = sftp_stat(m_sftp_session, CorrectPath(localPath).c_str());
-            lock.Unlock();
-            if (attributes == NULL)
+            lock.unlock();
+            if (attributes == nullptr)
               continue;
           }
 
@@ -200,17 +200,17 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
           entry.SetPath(base+localPath);
           items.push_back(entry);
 
-          lock.Lock();
+          lock.lock();
           sftp_attributes_free(attributes);
-          lock.Unlock();
+          lock.unlock();
         }
         else
           read = false;
       }
 
-      lock.Lock();
+      lock.lock();
       sftp_closedir(dir);
-      lock.Unlock();
+      lock.unlock();
 
       return true;
     }
@@ -241,8 +241,8 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 {
   if(m_connected)
   {
-    P8PLATFORM::CLockObject lock(m_lock);
-    m_LastActive = P8PLATFORM::GetTimeMs();
+    std::unique_lock<std::recursive_mutex> lock(m_lock);
+    m_LastActive = std::chrono::high_resolution_clock::now();
     sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
 
     if (attributes)
@@ -275,35 +275,65 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 
 int CSFTPSession::Seek(sftp_file handle, uint64_t position)
 {
-  P8PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = P8PLATFORM::GetTimeMs();
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
   int result = sftp_seek64(handle, position);
   return result;
 }
 
 int CSFTPSession::Read(sftp_file handle, void *buffer, size_t length)
 {
-  P8PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = P8PLATFORM::GetTimeMs();
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
   int result=sftp_read(handle, buffer, length);
   return result;
 }
 
 int64_t CSFTPSession::GetPosition(sftp_file handle)
 {
-  P8PLATFORM::CLockObject lock(m_lock);
-  m_LastActive = P8PLATFORM::GetTimeMs();
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
   int64_t result = sftp_tell64(handle);
   return result;
 }
 
 bool CSFTPSession::IsIdle()
 {
-  return (P8PLATFORM::GetTimeMs() - m_LastActive) > 90000;
+  std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+  return static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(now - m_LastActive).count()) > 90000;
 }
 
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
 {
+#if !(LIBSSH_VERSION_MAJOR == 0 && LIBSSH_VERSION_MINOR < 8)
+  // Code used on libssh 0.8.0 and above
+  // See https://api.libssh.org/stable/deprecated.html
+  switch (ssh_session_is_known_server(session))
+  {
+    case SSH_KNOWN_HOSTS_OK:
+      return true;
+    case SSH_KNOWN_HOSTS_CHANGED:
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Server that was known has changed");
+      return false;
+    case SSH_KNOWN_HOSTS_OTHER:
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: The host key for this server was not found but an other type of key exists. An attacker might change the default server key to confuse your client into thinking the key does not exist");
+      return false;
+    case SSH_KNOWN_HOSTS_NOT_FOUND:
+      kodi::Log(ADDON_LOG_INFO, "SFTPSession: Server file was not found, creating a new one");
+    case SSH_KNOWN_HOSTS_UNKNOWN:
+      kodi::Log(ADDON_LOG_INFO, "SFTPSession: Server unkown, we trust it for now");
+      if (ssh_session_update_known_hosts(session) != SSH_OK)
+      {
+        kodi::Log(ADDON_LOG_ERROR, "CSFTPSession: Failed to save host '%s'", strerror(errno));
+        return false;
+      }
+
+      return true;
+    case SSH_KNOWN_HOSTS_ERROR:
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to verify host '%s'", ssh_get_error(session));
+      return false;
+  }
+#else
   switch (ssh_is_server_known(session))
   {
     case SSH_SERVER_KNOWN_OK:
@@ -329,6 +359,7 @@ bool CSFTPSession::VerifyKnownHost(ssh_session session)
       kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to verify host '%s'", ssh_get_error(session));
       return false;
   }
+#endif
 
   return false;
 }
@@ -337,11 +368,11 @@ bool CSFTPSession::Connect(const VFSURL& url)
 {
   int timeout     = SFTP_TIMEOUT;
   m_connected     = false;
-  m_session       = NULL;
-  m_sftp_session  = NULL;
+  m_session       = nullptr;
+  m_sftp_session  = nullptr;
 
   m_session=ssh_new();
-  if (m_session == NULL)
+  if (m_session == nullptr)
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize session for host '%s'", url.hostname);
     return false;
@@ -390,17 +421,17 @@ bool CSFTPSession::Connect(const VFSURL& url)
   }
 
   int noAuth = SSH_AUTH_DENIED;
-  if ((noAuth = ssh_userauth_none(m_session, NULL)) == SSH_AUTH_ERROR)
+  if ((noAuth = ssh_userauth_none(m_session, nullptr)) == SSH_AUTH_ERROR)
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to authenticate via guest '%s'", ssh_get_error(m_session));
     return false;
   }
 
-  int method = ssh_userauth_list(m_session, NULL);
+  int method = ssh_userauth_list(m_session, nullptr);
 
   // Try to authenticate with public key first
   int publicKeyAuth = SSH_AUTH_DENIED;
-  if (method & SSH_AUTH_METHOD_PUBLICKEY && (publicKeyAuth = ssh_userauth_publickey_auto(m_session, NULL, NULL)) == SSH_AUTH_ERROR)
+  if (method & SSH_AUTH_METHOD_PUBLICKEY && (publicKeyAuth = ssh_userauth_publickey_auto(m_session, nullptr, nullptr)) == SSH_AUTH_ERROR)
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to authenticate via publickey '%s'", ssh_get_error(m_session));
     return false;
@@ -426,7 +457,7 @@ bool CSFTPSession::Connect(const VFSURL& url)
   {
     m_sftp_session = sftp_new(m_session);
 
-    if (m_sftp_session == NULL)
+    if (m_sftp_session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize channel '%s'", ssh_get_error(m_session));
       return false;
@@ -459,8 +490,8 @@ void CSFTPSession::Disconnect()
     ssh_free(m_session);
   }
 
-  m_sftp_session = NULL;
-  m_session = NULL;
+  m_sftp_session = nullptr;
+  m_session = nullptr;
 }
 
 /*!
@@ -472,7 +503,7 @@ void CSFTPSession::Disconnect()
 bool CSFTPSession::GetItemPermissions(const char *path, uint32_t &permissions)
 {
   bool gotPermissions = false;
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   if(m_connected)
   {
     sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
@@ -509,11 +540,11 @@ CSFTPSessionPtr CSFTPSessionManager::CreateSession(const VFSURL& url)
   itoa << url2.port;
   std::string portstr = itoa.str();
 
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   std::string key = std::string(url2.username) + ":" +
                     url2.password + "@" + url2.hostname + ":" + portstr;
   CSFTPSessionPtr ptr = sessions[key];
-  if (ptr == NULL)
+  if (ptr == nullptr)
   {
     ptr = CSFTPSessionPtr(new CSFTPSession(url2));
     sessions[key] = ptr;
@@ -524,7 +555,7 @@ CSFTPSessionPtr CSFTPSessionManager::CreateSession(const VFSURL& url)
 
 void CSFTPSessionManager::ClearOutIdleSessions()
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   for(std::map<std::string, CSFTPSessionPtr>::iterator iter = sessions.begin(); iter != sessions.end();)
   {
     if (iter->second->IsIdle())
@@ -536,6 +567,6 @@ void CSFTPSessionManager::ClearOutIdleSessions()
 
 void CSFTPSessionManager::DisconnectAllSessions()
 {
-  P8PLATFORM::CLockObject lock(m_lock);
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
   sessions.clear();
 }

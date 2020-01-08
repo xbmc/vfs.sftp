@@ -1,6 +1,6 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
- *      http://xbmc.org
+ *      Copyright (C) 2005-2019 Team Kodi
+ *      https://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,17 +13,18 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, see
+ *  along with Kodi; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
  */
 
-#include <p8-platform/threads/mutex.h>
+#include <chrono>
+#include <kodi/addon-instance/VFS.h>
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
-#include "kodi/addon-instance/VFS.h"
-#include <memory>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -44,17 +45,18 @@ public:
   int Read(sftp_file handle, void *buffer, size_t length);
   int64_t GetPosition(sftp_file handle);
   bool IsIdle();
+
 private:
   bool VerifyKnownHost(ssh_session session);
   bool Connect(const VFSURL& url);
   void Disconnect();
   bool GetItemPermissions(const char *path, uint32_t &permissions);
-  P8PLATFORM::CMutex m_lock;
+  std::recursive_mutex m_lock;
 
   bool m_connected;
   ssh_session  m_session;
   sftp_session m_sftp_session;
-  int m_LastActive;
+  std::chrono::high_resolution_clock::time_point m_LastActive;
 };
 
 typedef std::shared_ptr<CSFTPSession> CSFTPSessionPtr;
@@ -66,9 +68,10 @@ public:
   CSFTPSessionPtr CreateSession(const VFSURL& url);
   void ClearOutIdleSessions();
   void DisconnectAllSessions();
+
 private:
   CSFTPSessionManager() {}
   CSFTPSessionManager& operator=(const CSFTPSessionManager&);
-  P8PLATFORM::CMutex m_lock;
+  std::recursive_mutex m_lock;
   std::map<std::string, CSFTPSessionPtr> sessions;
 };

@@ -1,6 +1,6 @@
 --- a/include/libssh/wrapper.h
 +++ b/include/libssh/wrapper.h
-@@ -74,7 +74,7 @@
+@@ -66,7 +66,7 @@ struct ssh_cipher_struct;
  struct ssh_crypto_struct;
  
  typedef struct ssh_mac_ctx_struct *ssh_mac_ctx;
@@ -11,7 +11,7 @@
  
 --- a/src/libcrypto.c
 +++ b/src/libcrypto.c
-@@ -316,7 +316,7 @@
+@@ -316,7 +316,7 @@ void sha512(const unsigned char *digest, int len, unsigned char *hash)
      }
  }
  
@@ -22,7 +22,7 @@
      MD5CTX c = EVP_MD_CTX_create();
 --- a/src/libgcrypt.c
 +++ b/src/libgcrypt.c
-@@ -198,7 +198,7 @@
+@@ -198,7 +198,7 @@ void sha512(const unsigned char *digest, int len, unsigned char *hash) {
    gcry_md_hash_buffer(GCRY_MD_SHA512, hash, digest, len);
  }
  
@@ -33,7 +33,7 @@
  
 --- a/src/libmbedcrypto.c
 +++ b/src/libmbedcrypto.c
-@@ -338,7 +338,7 @@
+@@ -338,7 +338,7 @@ void sha512(const unsigned char *digest, int len, unsigned char *hash)
      }
  }
  
@@ -44,7 +44,7 @@
      int rc;
 --- a/src/pki_gcrypt.c
 +++ b/src/pki_gcrypt.c
-@@ -256,7 +256,7 @@
+@@ -256,7 +256,7 @@ static int passphrase_to_key(char *data, unsigned int datalen,
    unsigned int md_not_empty;
  
    for (j = 0, md_not_empty = 0; j < keylen; ) {
@@ -55,7 +55,7 @@
      }
 --- a/src/session.c
 +++ b/src/session.c
-@@ -987,7 +987,7 @@
+@@ -1003,7 +1003,7 @@ int ssh_get_pubkey_hash(ssh_session session, unsigned char **hash)
          return SSH_ERROR;
      }
  
@@ -64,7 +64,7 @@
      if (ctx == NULL) {
          SAFE_FREE(h);
          return SSH_ERROR;
-@@ -1177,7 +1177,7 @@
+@@ -1193,7 +1193,7 @@ int ssh_get_publickey_hash(const ssh_key key,
                  goto out;
              }
  
@@ -73,3 +73,4 @@
              if (ctx == NULL) {
                  free(h);
                  rc = -1;
+
