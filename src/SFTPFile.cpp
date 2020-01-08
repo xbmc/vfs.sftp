@@ -1,6 +1,6 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
- *      http://xbmc.org
+ *      Copyright (C) 2005-2019 Team Kodi
+ *      https://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,16 +13,15 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, see
+ *  along with Kodi; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
  */
 
-#include <p8-platform/threads/mutex.h>
-#include <kodi/addon-instance/VFS.h>
-#include <kodi/General.h>
 #include "SFTPSession.h"
 
+#include <kodi/addon-instance/VFS.h>
+#include <kodi/General.h>
 #include <map>
 #include <sstream>
 
@@ -38,7 +37,7 @@ class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
 public:
   CSFTPFile(KODI_HANDLE instance) : CInstanceVFS(instance) { }
 
-  virtual void* Open(const VFSURL& url) override
+  void* Open(const VFSURL& url) override
   {
     SFTPContext* result = new SFTPContext;
 
@@ -58,9 +57,9 @@ public:
     return nullptr;
   }
 
-  virtual ssize_t Read(void* context, void* buffer, size_t uiBufSize) override
+  ssize_t Read(void* context, void* buffer, size_t uiBufSize) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx && ctx->session && ctx->sftp_handle)
     {
       int rc = ctx->session->Read(ctx->sftp_handle, buffer, uiBufSize);
@@ -76,9 +75,9 @@ public:
     return -1;
   }
 
-  virtual int64_t Seek(void* context, int64_t iFilePosition, int whence) override
+  int64_t Seek(void* context, int64_t iFilePosition, int whence) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx && ctx->session && ctx->sftp_handle)
     {
       uint64_t position = 0;
@@ -101,9 +100,9 @@ public:
     }
   }
 
-  virtual int64_t GetLength(void* context) override
+  int64_t GetLength(void* context) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     struct __stat64 buffer;
     if (ctx->session->Stat(ctx->file.c_str(), &buffer) != 0)
       return 0;
@@ -111,9 +110,9 @@ public:
       return buffer.st_size;
   }
 
-  virtual int64_t GetPosition(void* context) override
+  int64_t GetPosition(void* context) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx->session && ctx->sftp_handle)
       return ctx->session->GetPosition(ctx->sftp_handle);
 
@@ -121,7 +120,7 @@ public:
     return 0;
   }
 
-  virtual int IoControl(void* context, XFILE::EIoControl request, void* param) override
+  int IoControl(void* context, XFILE::EIoControl request, void* param) override
   {
     if(request == XFILE::IOCTRL_SEEK_POSSIBLE)
       return 1;
@@ -129,7 +128,7 @@ public:
     return -1;
   }
 
-  virtual int Stat(const VFSURL& url, struct __stat64* buffer) override
+  int Stat(const VFSURL& url, struct __stat64* buffer) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     if (session)
@@ -141,9 +140,9 @@ public:
     }
   }
 
-  virtual bool Close(void* context) override
+  bool Close(void* context) override
   {
-    SFTPContext* ctx = (SFTPContext*)context;
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx->session && ctx->sftp_handle)
       ctx->session->CloseFileHandle(ctx->sftp_handle);
     delete ctx;
@@ -151,7 +150,7 @@ public:
     return true;
   }
 
-  virtual bool Exists(const VFSURL& url) override
+  bool Exists(const VFSURL& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     if (session)
@@ -163,17 +162,17 @@ public:
     }
   }
 
-  virtual void ClearOutIdle() override
+  void ClearOutIdle() override
   {
     CSFTPSessionManager::Get().ClearOutIdleSessions();
   }
 
-  virtual void DisconnectAll() override
+  void DisconnectAll() override
   {
     CSFTPSessionManager::Get().DisconnectAllSessions();
   }
 
-  virtual bool DirectoryExists(const VFSURL& url) override
+  bool DirectoryExists(const VFSURL& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     if (session)
@@ -185,9 +184,9 @@ public:
     }
   }
 
-  virtual bool GetDirectory(const VFSURL& url,
-                            std::vector<kodi::vfs::CDirEntry>& items,
-                            CVFSCallbacks callbacks) override
+  bool GetDirectory(const VFSURL& url,
+                    std::vector<kodi::vfs::CDirEntry>& items,
+                    CVFSCallbacks callbacks) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     std::stringstream str;
@@ -211,7 +210,7 @@ public:
     ssh_finalize();
   }
 
-  virtual ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
+  ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
   {
     addonInstance = new CSFTPFile(instance);
     return ADDON_STATUS_OK;

@@ -1,6 +1,6 @@
 --- a/ConfigureChecks.cmake
 +++ b/ConfigureChecks.cmake
-@@ -380,6 +380,9 @@
+@@ -402,6 +402,9 @@ if (NOT WIN32)
      }" HAVE_UNUSED_ATTRIBUTE)
  endif()
  
@@ -10,7 +10,7 @@
  check_c_source_compiles("
  #include <string.h>
  
-@@ -418,9 +421,6 @@
+@@ -440,9 +443,6 @@ int main(void) {
  }" HAVE_GCC_BOUNDED_ATTRIBUTE)
  endif(OPENBSD)
  
@@ -20,3 +20,4 @@
  # Check for version script support
  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/conftest.map" "VERS_1 {
          global: sym;
+
