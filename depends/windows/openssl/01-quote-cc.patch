@@ -1,6 +1,6 @@
 --- a/Configurations/windows-makefile.tmpl
 +++ b/Configurations/windows-makefile.tmpl
-@@ -164,8 +164,8 @@ libdir={- file_name_is_absolute($libdir)
+@@ -162,8 +162,8 @@
  
  ##### User defined commands and flags ################################
  
@@ -11,4 +11,3 @@
  CPPFLAGS={- our $cppflags1 = join(" ",
                                    (map { "-D".$_} @{$config{CPPDEFINES}}),
                                    (map { " /I ".$_} @{$config{CPPINCLUDES}}),
-
