@@ -16,8 +16,8 @@ set(SFTP_SOURCES src/SFTPSession.cpp
 
 set(SFTP_HEADERS src/SFTPSession.h)
 
-set(DEPLIBS ${OPENSSL_LIBRARIES}
-            ${SSH_LIBRARIES}
+set(DEPLIBS ${SSH_LIBRARIES}
+            ${OPENSSL_LIBRARIES}
             ${ZLIB_LIBRARIES})
 
 add_definitions( -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64)
