@@ -2,7 +2,7 @@
 
 This is a [Kodi](http://kodi.tv) VFS addon to support SFTP file systems.
 
-[![Build Status](https://travis-ci.org/xbmc/vfs.sftp.svg?branch=master)](https://travis-ci.org/xbmc/vfs.sftp)
+[![Build Status](https://travis-ci.org/xbmc/vfs.sftp.svg?branch=Matrix)](https://travis-ci.org/xbmc/vfs.sftp/branches)
 [![Build Status](https://dev.azure.com/teamkodi/binary-addons/_apis/build/status/xbmc.vfs.sftp?branchName=Matrix)](https://dev.azure.com/teamkodi/binary-addons/_build/latest?definitionId=54&branchName=Matrix)
 <!--- [![Build Status](https://ci.appveyor.com/api/projects/status/github/xbmc/vfs.sftp?svg=true)](https://ci.appveyor.com/project/xbmc/vfs-sftp) -->
 
