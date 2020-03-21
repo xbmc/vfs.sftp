@@ -120,9 +120,9 @@ public:
     return 0;
   }
 
-  int IoControl(void* context, XFILE::EIoControl request, void* param) override
+  int IoControl(void* context, VFS_IOCTRL request, void* param) override
   {
-    if(request == XFILE::IOCTRL_SEEK_POSSIBLE)
+    if(request == VFS_IOCTRL_SEEK_POSSIBLE)
       return 1;
 
     return -1;
