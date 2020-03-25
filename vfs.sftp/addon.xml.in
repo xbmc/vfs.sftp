@@ -29,5 +29,8 @@ This addon allows file access to data in it.</description>
     <platform>@PLATFORM@</platform>
     <license>GPL-2.0</license>
     <source>https://github.com/xbmc/vfs.sftp</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
   </extension>
 </addon>
