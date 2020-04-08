@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="vfs.sftp"
-  version="1.0.5"
+  version="1.0.6"
   name="SFTP support"
   provider-name="spiff">
   <requires>@ADDON_DEPENDS@</requires>
@@ -22,12 +22,15 @@
     zeroconf="_sftp-ssh._tcp"
     library_@PLATFORM@="@LIBRARY_FILENAME@"/>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en">SSH File Transfer Protocol support</summary>
-    <description lang="en">The SSH File Transfer Protocol (also Secure File Transfer Protocol, or SFTP) is a network protocol that provides file access, file transfer, and file management over any reliable data stream.
+    <summary lang="en_GB">SSH File Transfer Protocol support</summary>
+    <description lang="en_GB">The SSH File Transfer Protocol (also Secure File Transfer Protocol, or SFTP) is a network protocol that provides file access, file transfer, and file management over any reliable data stream.
 
 This addon allows file access to data in it.</description>
     <platform>@PLATFORM@</platform>
-    <license>GPL-2.0</license>
+    <license>GPL-2.0-or-later</license>
     <source>https://github.com/xbmc/vfs.sftp</source>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
   </extension>
 </addon>
