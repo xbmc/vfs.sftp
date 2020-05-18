@@ -15,9 +15,16 @@
 #include <kodi/General.h>
 
 #define SFTP_TIMEOUT 10
-#if !defined(S_ISREG)
+#ifndef S_ISREG
 #define S_ISREG(m) ((m & _S_IFREG) != 0)
 #endif
+#ifndef S_ISDIR
+#define S_ISDIR(m) ((((m)) & 0170000) == (0040000))
+#endif
+#ifndef S_ISLNK
+#define S_ISLNK(m) ((((m)) & 0170000) == (0120000))
+#endif
+
 
 static std::string CorrectPath(const std::string& path)
 {
