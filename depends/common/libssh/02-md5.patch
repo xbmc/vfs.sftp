@@ -55,7 +55,7 @@
      }
 --- a/src/session.c
 +++ b/src/session.c
-@@ -1003,7 +1003,7 @@ int ssh_get_pubkey_hash(ssh_session session, unsigned char **hash)
+@@ -1005,7 +1005,7 @@ int ssh_get_pubkey_hash(ssh_session session, unsigned char **hash)
          return SSH_ERROR;
      }
  
@@ -64,7 +64,7 @@
      if (ctx == NULL) {
          SAFE_FREE(h);
          return SSH_ERROR;
-@@ -1193,7 +1193,7 @@ int ssh_get_publickey_hash(const ssh_key key,
+@@ -1195,7 +1195,7 @@ int ssh_get_publickey_hash(const ssh_key key,
                  goto out;
              }
  

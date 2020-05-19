@@ -11,7 +11,7 @@
  
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -384,7 +384,7 @@ if (BUILD_STATIC_LIB)
+@@ -391,7 +391,7 @@ if (BUILD_STATIC_LIB)
    add_library(ssh::static ALIAS ssh-static)
  
    if (MSVC)

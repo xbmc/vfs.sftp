@@ -37,7 +37,7 @@
  #define set_status(session, status) do {\
          if (session->common.callbacks && session->common.callbacks->connect_status_function) \
              session->common.callbacks->connect_status_function(session->common.callbacks->userdata, status); \
-@@ -563,7 +567,7 @@ int ssh_connect(ssh_session session) {
+@@ -564,7 +568,7 @@ int ssh_connect(ssh_session session) {
      session->session_state=SSH_SESSION_STATE_SOCKET_CONNECTED;
      ssh_socket_set_fd(session->socket, session->opts.fd);
      ret=SSH_OK;
@@ -48,7 +48,7 @@
                                            session->opts.ProxyCommand);
 --- a/src/socket.c
 +++ b/src/socket.c
-@@ -58,6 +58,10 @@ typedef intptr_t ssize_t;
+@@ -60,6 +60,10 @@ typedef intptr_t ssize_t;
  #include "libssh/poll.h"
  #include "libssh/session.h"
  
@@ -59,7 +59,7 @@
  /**
   * @internal
   *
-@@ -833,7 +837,7 @@ int ssh_socket_connect(ssh_socket s,
+@@ -863,7 +867,7 @@ int ssh_socket_connect(ssh_socket s,
      return SSH_OK;
  }
  
