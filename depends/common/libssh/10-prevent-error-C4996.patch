@@ -1,14 +1,3 @@
-From d3ea7a06200023159f122582b60c5d2139be26d9 Mon Sep 17 00:00:00 2001
-From: Alwin Esch <alwin.esch@web.de>
-Date: Sat, 28 Mar 2020 22:25:32 +0100
-Subject: [PATCH] prevent error C4996
-
----
- CMakeLists.txt | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5e603c2..7a09f5d 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -42,6 +42,11 @@ macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source buil
@@ -23,6 +12,4 @@ index 5e603c2..7a09f5d 100644
  # search for libraries
  if (WITH_ZLIB)
      find_package(ZLIB REQUIRED)
--- 
-2.20.1
 

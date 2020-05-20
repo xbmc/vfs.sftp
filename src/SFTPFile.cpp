@@ -23,7 +23,7 @@ class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
   };
 
 public:
-  CSFTPFile(KODI_HANDLE instance) : CInstanceVFS(instance) { }
+  CSFTPFile(KODI_HANDLE instance, const std::string& version) : CInstanceVFS(instance, version) { }
 
   void* Open(const VFSURL& url) override
   {
@@ -193,14 +193,14 @@ public:
     ssh_init();
   }
 
-  ~CMyAddon()
+  ~CMyAddon() override
   {
     ssh_finalize();
   }
 
-  ADDON_STATUS CreateInstance(int instanceType, std::string instanceID, KODI_HANDLE instance, KODI_HANDLE& addonInstance) override
+  ADDON_STATUS CreateInstance(int instanceType, const std::string& instanceID, KODI_HANDLE instance, const std::string& version, KODI_HANDLE& addonInstance) override
   {
-    addonInstance = new CSFTPFile(instance);
+    addonInstance = new CSFTPFile(instance, version);
     return ADDON_STATUS_OK;
   }
 };
