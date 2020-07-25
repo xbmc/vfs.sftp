@@ -22,7 +22,11 @@
     zeroconf="_sftp-ssh._tcp"
     library_@PLATFORM@="@LIBRARY_FILENAME@"/>
   <extension point="xbmc.addon.metadata">
+    <summary lang="de_DE">Unterstützung für SSH File Transfer Protocol</summary>
     <summary lang="en_GB">SSH File Transfer Protocol support</summary>
+    <description lang="de_DE">Das SSH File Transfer Protocol (auch Secure File Transfer Protocol oder SFTP) ist ein Netzwerkprotokoll, das Dateizugriff, Dateiübertragung und Dateiverwaltung über jeden zuverlässigen Datenstrom ermöglicht.
+
+Dieses Addon ermöglicht den Dateizugriff auf darin enthaltene Daten.</description>
     <description lang="en_GB">The SSH File Transfer Protocol (also Secure File Transfer Protocol, or SFTP) is a network protocol that provides file access, file transfer, and file management over any reliable data stream.
 
 This addon allows file access to data in it.</description>
