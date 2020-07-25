@@ -74,9 +74,9 @@ static const char * SFTPErrorText(int sftp_error)
   return "Unknown error code";
 }
 
-CSFTPSession::CSFTPSession(const VFSURL& url)
+CSFTPSession::CSFTPSession(const kodi::addon::VFSUrl& url)
 {
-  kodi::Log(ADDON_LOG_INFO, "SFTPSession: Creating new session on host '%s:%d' with user '%s'", url.hostname, url.port, url.username);
+  kodi::Log(ADDON_LOG_INFO, "SFTPSession: Creating new session on host '%s:%d' with user '%s'", url.GetHostname().c_str(), url.GetPort(), url.GetUsername().c_str());
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   if (!Connect(url))
     Disconnect();
@@ -216,7 +216,7 @@ bool CSFTPSession::GetDirectory(const std::string& base, const std::string& fold
   return false;
 }
 
-bool CSFTPSession::DirectoryExists(const char *path)
+bool CSFTPSession::DirectoryExists(const std::string& path)
 {
   bool exists = false;
   uint32_t permissions = 0;
@@ -224,7 +224,7 @@ bool CSFTPSession::DirectoryExists(const char *path)
   return exists && S_ISDIR(permissions);
 }
 
-bool CSFTPSession::FileExists(const char *path)
+bool CSFTPSession::FileExists(const std::string& path)
 {
   bool exists = false;
   uint32_t permissions = 0;
@@ -232,7 +232,7 @@ bool CSFTPSession::FileExists(const char *path)
   return exists && S_ISREG(permissions);
 }
 
-int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
+int CSFTPSession::Stat(const std::string& path, kodi::vfs::FileStatus& buffer)
 {
   if(m_connected)
   {
@@ -242,28 +242,27 @@ int CSFTPSession::Stat(const char *path, struct __stat64* buffer)
 
     if (attributes)
     {
-      memset(buffer, 0, sizeof(struct __stat64));
-      buffer->st_size = attributes->size;
-      buffer->st_mtime = attributes->mtime;
-      buffer->st_atime = attributes->atime;
+      buffer.SetSize(attributes->size);
+      buffer.SetModificationTime(attributes->mtime);
+      buffer.SetAccessTime(attributes->atime);
 
       if S_ISDIR(attributes->permissions)
-        buffer->st_mode = S_IFDIR;
+        buffer.SetIsDirectory(true);
       else if S_ISREG(attributes->permissions)
-        buffer->st_mode = S_IFREG;
+        buffer.SetIsRegular(true);
 
       sftp_attributes_free(attributes);
       return 0;
     }
     else
     {
-      kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed to get attributes for '%s'", path);
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed to get attributes for '%s'", path.c_str());
       return -1;
     }
   }
   else
   {
-    kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed because not connected for '%s'", path);
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed because not connected for '%s'", path.c_str());
     return -1;
   }
 }
@@ -359,35 +358,40 @@ bool CSFTPSession::VerifyKnownHost(ssh_session session)
   return false;
 }
 
-bool CSFTPSession::Connect(const VFSURL& url)
+bool CSFTPSession::Connect(const kodi::addon::VFSUrl& url)
 {
   int timeout     = SFTP_TIMEOUT;
   m_connected     = false;
   m_session       = nullptr;
   m_sftp_session  = nullptr;
 
+  // Check if url contains port, else fallback to 22 (default)
+  unsigned int port = url.GetPort();
+  if (port == 0)
+    port = 22;
+
   m_session=ssh_new();
   if (m_session == nullptr)
   {
-    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize session for host '%s'", url.hostname);
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to initialize session for host '%s'", url.GetHostname().c_str());
     return false;
   }
 
-  if (ssh_options_set(m_session, SSH_OPTIONS_USER, url.username) < 0)
+  if (ssh_options_set(m_session, SSH_OPTIONS_USER, url.GetUsername().c_str()) < 0)
   {
-    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set username '%s' for session", url.username);
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set username '%s' for session", url.GetUsername().c_str());
     return false;
   }
 
-  if (ssh_options_set(m_session, SSH_OPTIONS_HOST, url.hostname) < 0)
+  if (ssh_options_set(m_session, SSH_OPTIONS_HOST, url.GetHostname().c_str()) < 0)
   {
-    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set host '%s' for session", url.hostname);
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set host '%s' for session", url.GetHostname().c_str());
     return false;
   }
 
-  if (ssh_options_set(m_session, SSH_OPTIONS_PORT, &url.port) < 0)
+  if (ssh_options_set(m_session, SSH_OPTIONS_PORT, &port) < 0)
   {
-    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set port '%d' for session", url.port);
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to set port '%d' for session", port);
     return false;
   }
 
@@ -437,13 +441,13 @@ bool CSFTPSession::Connect(const VFSURL& url)
   if (method & SSH_AUTH_METHOD_PASSWORD)
   {
     if (publicKeyAuth != SSH_AUTH_SUCCESS &&
-        (passwordAuth = ssh_userauth_password(m_session, url.username, url.password)) == SSH_AUTH_ERROR)
+        (passwordAuth = ssh_userauth_password(m_session, url.GetUsername().c_str(), url.GetPassword().c_str())) == SSH_AUTH_ERROR)
       {
         kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Failed to authenticate via password '%s'", ssh_get_error(m_session));
         return false;
       }
   }
-  else if (strlen(url.password) > 0)
+  else if (!url.GetPassword().empty())
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Password present, but server does not support password authentication");
   }
@@ -495,7 +499,7 @@ void CSFTPSession::Disconnect()
  \param permissions POSIX compatible permissions information for the file or directory (if it exists). i.e. can use macros S_ISDIR() etc.
  \return Returns \e true, if it was possible to get permissions for the file or directory, \e false otherwise.
  */
-bool CSFTPSession::GetItemPermissions(const char *path, uint32_t &permissions)
+bool CSFTPSession::GetItemPermissions(const std::string& path, uint32_t &permissions)
 {
   bool gotPermissions = false;
   std::unique_lock<std::recursive_mutex> lock(m_lock);
@@ -523,25 +527,20 @@ CSFTPSessionManager& CSFTPSessionManager::Get()
   return instance;
 }
 
-CSFTPSessionPtr CSFTPSessionManager::CreateSession(const VFSURL& url)
+CSFTPSessionPtr CSFTPSessionManager::CreateSession(const kodi::addon::VFSUrl& url)
 {
-  VFSURL url2 = url;
   // Check if url contains port, else fallback to 22 (default)
-  if (url2.port == 0)
-    url2.port = 22;
-
-  // Convert port number to string
-  std::stringstream itoa;
-  itoa << url2.port;
-  std::string portstr = itoa.str();
+  unsigned int port = url.GetPort();
+  if (port == 0)
+    port = 22;
 
   std::unique_lock<std::recursive_mutex> lock(m_lock);
-  std::string key = std::string(url2.username) + ":" +
-                    url2.password + "@" + url2.hostname + ":" + portstr;
+  std::string key = url.GetUsername() + ":" +
+                    url.GetPassword() + "@" + url.GetHostname() + ":" + std::to_string(port);
   CSFTPSessionPtr ptr = sessions[key];
   if (ptr == nullptr)
   {
-    ptr = CSFTPSessionPtr(new CSFTPSession(url2));
+    ptr = CSFTPSessionPtr(new CSFTPSession(url));
     sessions[key] = ptr;
   }
 

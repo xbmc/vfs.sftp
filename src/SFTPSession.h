@@ -21,16 +21,16 @@
 class CSFTPSession
 {
 public:
-  CSFTPSession(const VFSURL& url);
+  CSFTPSession(const kodi::addon::VFSUrl& url);
   virtual ~CSFTPSession();
 
   sftp_file CreateFileHande(const std::string& file);
   void CloseFileHandle(sftp_file handle);
   bool GetDirectory(const std::string& base, const std::string& folder,
                     std::vector<kodi::vfs::CDirEntry>& items);
-  bool DirectoryExists(const char *path);
-  bool FileExists(const char *path);
-  int Stat(const char *path, struct __stat64* buffer);
+  bool DirectoryExists(const std::string& path);
+  bool FileExists(const std::string& path);
+  int Stat(const std::string& path, kodi::vfs::FileStatus& buffer);
   int Seek(sftp_file handle, uint64_t position);
   int Read(sftp_file handle, void *buffer, size_t length);
   int64_t GetPosition(sftp_file handle);
@@ -38,9 +38,9 @@ public:
 
 private:
   bool VerifyKnownHost(ssh_session session);
-  bool Connect(const VFSURL& url);
+  bool Connect(const kodi::addon::VFSUrl& url);
   void Disconnect();
-  bool GetItemPermissions(const char *path, uint32_t &permissions);
+  bool GetItemPermissions(const std::string& path, uint32_t &permissions);
   std::recursive_mutex m_lock;
 
   bool m_connected;
@@ -55,7 +55,7 @@ class CSFTPSessionManager
 {
 public:
   static CSFTPSessionManager& Get();
-  CSFTPSessionPtr CreateSession(const VFSURL& url);
+  CSFTPSessionPtr CreateSession(const kodi::addon::VFSUrl& url);
   void ClearOutIdleSessions();
   void DisconnectAllSessions();
 

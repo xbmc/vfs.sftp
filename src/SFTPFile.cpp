@@ -25,7 +25,7 @@ class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
 public:
   CSFTPFile(KODI_HANDLE instance, const std::string& version) : CInstanceVFS(instance, version) { }
 
-  void* Open(const VFSURL& url) override
+  kodi::addon::VFSFileHandle Open(const kodi::addon::VFSUrl& url) override
   {
     SFTPContext* result = new SFTPContext;
 
@@ -33,7 +33,7 @@ public:
 
     if (result->session)
     {
-      result->file = url.filename;
+      result->file = url.GetFilename().c_str();
       result->sftp_handle = result->session->CreateFileHande(result->file);
       if (result->sftp_handle)
         return result;
@@ -45,7 +45,7 @@ public:
     return nullptr;
   }
 
-  ssize_t Read(void* context, void* buffer, size_t uiBufSize) override
+  ssize_t Read(kodi::addon::VFSFileHandle context, uint8_t* buffer, size_t uiBufSize) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx && ctx->session && ctx->sftp_handle)
@@ -63,7 +63,7 @@ public:
     return -1;
   }
 
-  int64_t Seek(void* context, int64_t iFilePosition, int whence) override
+  int64_t Seek(kodi::addon::VFSFileHandle context, int64_t iFilePosition, int whence) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx && ctx->session && ctx->sftp_handle)
@@ -88,17 +88,17 @@ public:
     }
   }
 
-  int64_t GetLength(void* context) override
+  int64_t GetLength(kodi::addon::VFSFileHandle context) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
-    struct __stat64 buffer;
-    if (ctx->session->Stat(ctx->file.c_str(), &buffer) != 0)
+    kodi::vfs::FileStatus buffer;
+    if (ctx->session->Stat(ctx->file.c_str(), buffer) != 0)
       return 0;
     else
-      return buffer.st_size;
+      return buffer.GetSize();
   }
 
-  int64_t GetPosition(void* context) override
+  int64_t GetPosition(kodi::addon::VFSFileHandle context) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx->session && ctx->sftp_handle)
@@ -108,27 +108,24 @@ public:
     return 0;
   }
 
-  int IoControl(void* context, VFS_IOCTRL request, void* param) override
+  bool IoControlGetSeekPossible(kodi::addon::VFSFileHandle context) override
   {
-    if(request == VFS_IOCTRL_SEEK_POSSIBLE)
-      return 1;
-
-    return -1;
+    return true;
   }
 
-  int Stat(const VFSURL& url, struct __stat64* buffer) override
+  int Stat(const kodi::addon::VFSUrl& url, kodi::vfs::FileStatus& buffer) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     if (session)
-      return session->Stat(url.filename, buffer);
+      return session->Stat(url.GetFilename().c_str(), buffer);
     else
     {
-      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to stat for '%s'", url.filename);
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to stat for '%s'", url.GetFilename().c_str());
       return -1;
     }
   }
 
-  bool Close(void* context) override
+  bool Close(kodi::addon::VFSFileHandle context) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
     if (ctx->session && ctx->sftp_handle)
@@ -138,14 +135,14 @@ public:
     return true;
   }
 
-  bool Exists(const VFSURL& url) override
+  bool Exists(const kodi::addon::VFSUrl& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     if (session)
-      return session->FileExists(url.filename);
+      return session->FileExists(url.GetFilename());
     else
     {
-      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to check exists for '%s'", url.filename);
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to check exists for '%s'", url.GetFilename().c_str());
       return false;
     }
   }
@@ -160,11 +157,11 @@ public:
     CSFTPSessionManager::Get().DisconnectAllSessions();
   }
 
-  bool DirectoryExists(const VFSURL& url) override
+  bool DirectoryExists(const kodi::addon::VFSUrl& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     if (session)
-      return session->DirectoryExists(url.filename);
+      return session->DirectoryExists(url.GetFilename());
     else
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to check exists");
@@ -172,16 +169,16 @@ public:
     }
   }
 
-  bool GetDirectory(const VFSURL& url,
+  bool GetDirectory(const kodi::addon::VFSUrl& url,
                     std::vector<kodi::vfs::CDirEntry>& items,
                     CVFSCallbacks callbacks) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     std::stringstream str;
-    str << url.protocol << "://" << url.username << ":" << url.password
-        << "@" << url.hostname << ":" << (url.port ? url.port : 22) << "/";
+    str << url.GetProtocol() << "://" << url.GetUsername() << ":" << url.GetPassword()
+        << "@" << url.GetHostname() << ":" << (url.GetPort() ? url.GetPort() : 22) << "/";
 
-    return session->GetDirectory(str.str(), url.filename, items);
+    return session->GetDirectory(str.str(), url.GetFilename(), items);
   }
 };
 
