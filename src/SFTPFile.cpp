@@ -8,8 +8,8 @@
 
 #include "SFTPSession.h"
 
-#include <kodi/addon-instance/VFS.h>
 #include <kodi/General.h>
+#include <kodi/addon-instance/VFS.h>
 #include <map>
 #include <sstream>
 
@@ -23,7 +23,7 @@ class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
   };
 
 public:
-  CSFTPFile(KODI_HANDLE instance, const std::string& version) : CInstanceVFS(instance, version) { }
+  CSFTPFile(KODI_HANDLE instance, const std::string& version) : CInstanceVFS(instance, version) {}
 
   kodi::addon::VFSFileHandle Open(const kodi::addon::VFSUrl& url) override
   {
@@ -104,14 +104,12 @@ public:
     if (ctx->session && ctx->sftp_handle)
       return ctx->session->GetPosition(ctx->sftp_handle);
 
-    kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't get position without a handle for '%s'", ctx->file.c_str());
+    kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't get position without a handle for '%s'",
+              ctx->file.c_str());
     return 0;
   }
 
-  bool IoControlGetSeekPossible(kodi::addon::VFSFileHandle context) override
-  {
-    return true;
-  }
+  bool IoControlGetSeekPossible(kodi::addon::VFSFileHandle context) override { return true; }
 
   int Stat(const kodi::addon::VFSUrl& url, kodi::vfs::FileStatus& buffer) override
   {
@@ -120,7 +118,8 @@ public:
       return session->Stat(url.GetFilename().c_str(), buffer);
     else
     {
-      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to stat for '%s'", url.GetFilename().c_str());
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to stat for '%s'",
+                url.GetFilename().c_str());
       return -1;
     }
   }
@@ -142,20 +141,15 @@ public:
       return session->FileExists(url.GetFilename());
     else
     {
-      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to check exists for '%s'", url.GetFilename().c_str());
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to check exists for '%s'",
+                url.GetFilename().c_str());
       return false;
     }
   }
 
-  void ClearOutIdle() override
-  {
-    CSFTPSessionManager::Get().ClearOutIdleSessions();
-  }
+  void ClearOutIdle() override { CSFTPSessionManager::Get().ClearOutIdleSessions(); }
 
-  void DisconnectAll() override
-  {
-    CSFTPSessionManager::Get().DisconnectAllSessions();
-  }
+  void DisconnectAll() override { CSFTPSessionManager::Get().DisconnectAllSessions(); }
 
   bool DirectoryExists(const kodi::addon::VFSUrl& url) override
   {
@@ -175,8 +169,8 @@ public:
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
     std::stringstream str;
-    str << url.GetProtocol() << "://" << url.GetUsername() << ":" << url.GetPassword()
-        << "@" << url.GetHostname() << ":" << (url.GetPort() ? url.GetPort() : 22) << "/";
+    str << url.GetProtocol() << "://" << url.GetUsername() << ":" << url.GetPassword() << "@"
+        << url.GetHostname() << ":" << (url.GetPort() ? url.GetPort() : 22) << "/";
 
     return session->GetDirectory(str.str(), url.GetFilename(), items);
   }
@@ -185,17 +179,15 @@ public:
 class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
 {
 public:
-  CMyAddon()
-  {
-    ssh_init();
-  }
+  CMyAddon() { ssh_init(); }
 
-  ~CMyAddon() override
-  {
-    ssh_finalize();
-  }
+  ~CMyAddon() override { ssh_finalize(); }
 
-  ADDON_STATUS CreateInstance(int instanceType, const std::string& instanceID, KODI_HANDLE instance, const std::string& version, KODI_HANDLE& addonInstance) override
+  ADDON_STATUS CreateInstance(int instanceType,
+                              const std::string& instanceID,
+                              KODI_HANDLE instance,
+                              const std::string& version,
+                              KODI_HANDLE& addonInstance) override
   {
     addonInstance = new CSFTPFile(instance, version);
     return ADDON_STATUS_OK;

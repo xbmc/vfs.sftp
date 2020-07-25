@@ -26,13 +26,14 @@ public:
 
   sftp_file CreateFileHande(const std::string& file);
   void CloseFileHandle(sftp_file handle);
-  bool GetDirectory(const std::string& base, const std::string& folder,
+  bool GetDirectory(const std::string& base,
+                    const std::string& folder,
                     std::vector<kodi::vfs::CDirEntry>& items);
   bool DirectoryExists(const std::string& path);
   bool FileExists(const std::string& path);
   int Stat(const std::string& path, kodi::vfs::FileStatus& buffer);
   int Seek(sftp_file handle, uint64_t position);
-  int Read(sftp_file handle, void *buffer, size_t length);
+  int Read(sftp_file handle, void* buffer, size_t length);
   int64_t GetPosition(sftp_file handle);
   bool IsIdle();
 
@@ -40,11 +41,11 @@ private:
   bool VerifyKnownHost(ssh_session session);
   bool Connect(const kodi::addon::VFSUrl& url);
   void Disconnect();
-  bool GetItemPermissions(const std::string& path, uint32_t &permissions);
+  bool GetItemPermissions(const std::string& path, uint32_t& permissions);
   std::recursive_mutex m_lock;
 
   bool m_connected;
-  ssh_session  m_session;
+  ssh_session m_session;
   sftp_session m_sftp_session;
   std::chrono::high_resolution_clock::time_point m_LastActive;
 };
