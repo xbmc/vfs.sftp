@@ -250,6 +250,12 @@ public:
       return OpenInternal(url, O_CREAT | O_RDWR);
   }
 
+  int64_t Truncate(kodi::addon::VFSFileHandle context, int64_t size) override
+  {
+    kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Truncate is not implemented");
+    return -1;
+  }
+
   bool IoControlGetCacheStatus (kodi::addon::VFSFileHandle context, kodi::vfs::CacheStatus &status) override { return false; }
 
   bool IoControlSetCacheRate (kodi::addon::VFSFileHandle context, unsigned int rate) override { return false; }
