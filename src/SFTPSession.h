@@ -23,7 +23,7 @@ public:
   CSFTPSession(const kodi::addon::VFSUrl& url);
   virtual ~CSFTPSession();
 
-  sftp_file CreateFileHande(const std::string& file);
+  sftp_file CreateFileHande(const std::string& file, mode_t mode);
   void CloseFileHandle(sftp_file handle);
   bool GetDirectory(const std::string& base,
                     const std::string& folder,

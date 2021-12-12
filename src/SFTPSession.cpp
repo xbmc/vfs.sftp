@@ -90,13 +90,13 @@ CSFTPSession::~CSFTPSession()
   Disconnect();
 }
 
-sftp_file CSFTPSession::CreateFileHande(const std::string& file)
+sftp_file CSFTPSession::CreateFileHande(const std::string& file, mode_t mode)
 {
   if (m_connected)
   {
     std::unique_lock<std::recursive_mutex> lock(m_lock);
     m_LastActive = std::chrono::high_resolution_clock::now();
-    sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), O_RDONLY, 0);
+    sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), mode, 0);
     if (handle)
     {
       sftp_file_set_blocking(handle);
@@ -327,7 +327,7 @@ bool CSFTPSession::CreateDirectory(const std::string& path)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_mkdir(m_sftp_session, CorrectPath(path).c_str(), S_IWUSR);
+  int result = sftp_mkdir(m_sftp_session, CorrectPath(path).c_str(), S_IRWXU);
   return result;
 }
 

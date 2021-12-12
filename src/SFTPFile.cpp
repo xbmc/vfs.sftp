@@ -11,6 +11,7 @@
 #include <kodi/addon-instance/VFS.h>
 #include <map>
 #include <sstream>
+#include <fcntl.h>
 
 class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
 {
@@ -26,22 +27,7 @@ public:
 
   kodi::addon::VFSFileHandle Open(const kodi::addon::VFSUrl& url) override
   {
-    SFTPContext* result = new SFTPContext;
-
-    result->session = CSFTPSessionManager::Get().CreateSession(url);
-
-    if (result->session)
-    {
-      result->file = url.GetFilename().c_str();
-      result->sftp_handle = result->session->CreateFileHande(result->file);
-      if (result->sftp_handle)
-        return result;
-    }
-    else
-      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to allocate session");
-
-    delete result;
-    return nullptr;
+    return OpenInternal(url, O_RDONLY);
   }
 
   ssize_t Read(kodi::addon::VFSFileHandle context, uint8_t* buffer, size_t uiBufSize) override
@@ -224,6 +210,47 @@ public:
                 url_from.GetFilename().c_str());
       return false;
     }
+  }
+
+  bool ContainsFiles(const kodi::addon::VFSUrl& url,
+                    std::vector<kodi::vfs::CDirEntry>& items,
+                    std::string &rootPath) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
+    std::stringstream str;
+    str << url.GetProtocol() << "://" << url.GetUsername() << ":" << url.GetPassword() << "@"
+        << url.GetHostname() << ":" << (url.GetPort() ? url.GetPort() : 22) << "/";
+
+    return session->GetDirectory(str.str(), url.GetFilename(), items);
+  }
+
+  kodi::addon::VFSFileHandle OpenForWrite(const kodi::addon::VFSUrl& url, bool overWrite) override
+  {
+    if (overWrite)
+      return OpenInternal(url, O_CREAT | O_RDWR | O_TRUNC);
+    else
+      return OpenInternal(url, O_CREAT | O_RDWR);
+  }
+
+private:
+  kodi::addon::VFSFileHandle OpenInternal(const kodi::addon::VFSUrl& url, mode_t mode)
+  {
+    SFTPContext* result = new SFTPContext;
+
+    result->session = CSFTPSessionManager::Get().CreateSession(url);
+
+    if (result->session)
+    {
+      result->file = url.GetFilename().c_str();
+      result->sftp_handle = result->session->CreateFileHande(result->file, mode);
+      if (result->sftp_handle)
+        return result;
+    }
+    else
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to allocate session");
+
+    delete result;
+    return nullptr;
   }
 };
 
