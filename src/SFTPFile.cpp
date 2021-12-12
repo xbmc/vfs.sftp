@@ -199,6 +199,18 @@ public:
       return false;
     }
   }
+  bool Rename(const kodi::addon::VFSUrl& url_from, const kodi::addon::VFSUrl& url_to) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url_from);
+    if (session)
+      return session->RenameFile(url_from.GetFilename(), url_to.GetFilename());
+    else
+    {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to rename file '%s'",
+                url_from.GetFilename().c_str());
+      return false;
+    }
+  }
 };
 
 class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase

@@ -37,6 +37,7 @@ public:
   bool IsIdle();
   bool DeleteFile(const std::string& path);
   bool DeleteDirectory(const std::string& path);
+  bool RenameFile(const std::string& path_from, const std::string& path_to);
 
 private:
   bool VerifyKnownHost(ssh_session session);

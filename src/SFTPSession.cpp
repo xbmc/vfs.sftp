@@ -323,6 +323,14 @@ bool CSFTPSession::DeleteDirectory(const std::string& path)
   return result;
 }
 
+bool CSFTPSession::RenameFile(const std::string& path_from, const std::string& path_to)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_rename(m_sftp_session, CorrectPath(path_from).c_str(), CorrectPath(path_to).c_str());
+  return result;
+}
+
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
 {
 #if !(LIBSSH_VERSION_MAJOR == 0 && LIBSSH_VERSION_MINOR < 8)
