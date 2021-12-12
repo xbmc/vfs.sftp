@@ -307,6 +307,22 @@ bool CSFTPSession::IsIdle()
          90000;
 }
 
+bool CSFTPSession::DeleteFile(const std::string& path)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_unlink(m_sftp_session, CorrectPath(path).c_str());
+  return result;
+}
+
+bool CSFTPSession::DeleteDirectory(const std::string& path)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_rmdir(m_sftp_session, CorrectPath(path).c_str());
+  return result;
+}
+
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
 {
 #if !(LIBSSH_VERSION_MAJOR == 0 && LIBSSH_VERSION_MINOR < 8)

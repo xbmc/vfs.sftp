@@ -173,6 +173,32 @@ public:
 
     return session->GetDirectory(str.str(), url.GetFilename(), items);
   }
+
+  bool Delete(const kodi::addon::VFSUrl& url) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
+    if (session)
+      return session->DeleteFile(url.GetFilename());
+    else
+    {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to delete file '%s'",
+                url.GetFilename().c_str());
+      return false;
+    }
+  }
+
+  bool RemoveDirectory(const kodi::addon::VFSUrl& url) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
+    if (session)
+      return session->DeleteDirectory(url.GetFilename());
+    else
+    {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to delete folder '%s'",
+                url.GetFilename().c_str());
+      return false;
+    }
+  }
 };
 
 class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase

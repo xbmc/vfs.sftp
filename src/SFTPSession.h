@@ -35,6 +35,8 @@ public:
   int Read(sftp_file handle, void* buffer, size_t length);
   int64_t GetPosition(sftp_file handle);
   bool IsIdle();
+  bool DeleteFile(const std::string& path);
+  bool DeleteDirectory(const std::string& path);
 
 private:
   bool VerifyKnownHost(ssh_session session);
