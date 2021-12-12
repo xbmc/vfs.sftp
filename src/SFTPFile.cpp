@@ -250,6 +250,11 @@ public:
       return OpenInternal(url, O_CREAT | O_RDWR);
   }
 
+  bool IoControlGetCacheStatus (kodi::addon::VFSFileHandle context, kodi::vfs::CacheStatus &status) override { return false; }
+
+  bool IoControlSetCacheRate (kodi::addon::VFSFileHandle context, unsigned int rate) override { return false; }
+
+  bool IoControlSetRetry (kodi::addon::VFSFileHandle context, bool retry) override { return false; }
 
 private:
   kodi::addon::VFSFileHandle OpenInternal(const kodi::addon::VFSUrl& url, mode_t mode)
