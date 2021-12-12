@@ -245,7 +245,7 @@ public:
       return OpenInternal(url, O_CREAT | O_RDWR);
   }
 
-  int64_t Truncate(kodi::addon::VFSFileHandle context, int64_t size) override
+  int Truncate(kodi::addon::VFSFileHandle context, int64_t size) override
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Truncate is not implemented");
     return -1;
