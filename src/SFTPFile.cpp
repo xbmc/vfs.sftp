@@ -234,12 +234,7 @@ public:
                     std::vector<kodi::vfs::CDirEntry>& items,
                     std::string &rootPath) override
   {
-    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
-    std::stringstream str;
-    str << url.GetProtocol() << "://" << url.GetUsername() << ":" << url.GetPassword() << "@"
-        << url.GetHostname() << ":" << (url.GetPort() ? url.GetPort() : 22) << "/";
-
-    return session->GetDirectory(str.str(), url.GetFilename(), items);
+    return DirectoryExists(url) && !items.empty();
   }
 
   kodi::addon::VFSFileHandle OpenForWrite(const kodi::addon::VFSUrl& url, bool overWrite) override
