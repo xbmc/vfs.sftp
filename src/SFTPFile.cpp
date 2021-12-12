@@ -48,6 +48,24 @@ public:
     return -1;
   }
 
+  ssize_t Write(kodi::addon::VFSFileHandle context, const uint8_t* buffer, size_t uiBufSize) override
+  {
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
+    if (ctx && ctx->session && ctx->sftp_handle)
+    {
+      int writeBytes = ctx->session->Write(ctx->sftp_handle, buffer, uiBufSize);
+
+      if (writeBytes >= 0)
+        return writeBytes;
+      else
+        kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to write %i");
+    }
+    else
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't write without a handle");
+
+    return -1;
+  }
+
   int64_t Seek(kodi::addon::VFSFileHandle context, int64_t iFilePosition, int whence) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
@@ -231,6 +249,7 @@ public:
     else
       return OpenInternal(url, O_CREAT | O_RDWR);
   }
+
 
 private:
   kodi::addon::VFSFileHandle OpenInternal(const kodi::addon::VFSUrl& url, mode_t mode)

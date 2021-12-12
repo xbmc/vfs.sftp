@@ -291,6 +291,14 @@ int CSFTPSession::Read(sftp_file handle, void* buffer, size_t length)
   return result;
 }
 
+int CSFTPSession::Write(sftp_file handle, const void* buffer, size_t length)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_write(handle, buffer, length);
+  return result;
+}
+
 int64_t CSFTPSession::GetPosition(sftp_file handle)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);

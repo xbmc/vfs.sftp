@@ -33,6 +33,7 @@ public:
   int Stat(const std::string& path, kodi::vfs::FileStatus& buffer);
   int Seek(sftp_file handle, uint64_t position);
   int Read(sftp_file handle, void* buffer, size_t length);
+  int Write(sftp_file handle, const void* buffer, size_t length);
   int64_t GetPosition(sftp_file handle);
   bool IsIdle();
   bool DeleteFile(const std::string& path);
