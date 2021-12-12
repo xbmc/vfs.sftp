@@ -323,6 +323,14 @@ bool CSFTPSession::DeleteDirectory(const std::string& path)
   return result;
 }
 
+bool CSFTPSession::CreateDirectory(const std::string& path)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_mkdir(m_sftp_session, CorrectPath(path).c_str(), S_IWUSR);
+  return result;
+}
+
 bool CSFTPSession::RenameFile(const std::string& path_from, const std::string& path_to)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);

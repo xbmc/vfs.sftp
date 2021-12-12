@@ -199,6 +199,20 @@ public:
       return false;
     }
   }
+
+  bool CreateDirectory(const kodi::addon::VFSUrl& url) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
+    if (session)
+      return session->CreateDirectory(url.GetFilename());
+    else
+    {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to create folder '%s'",
+                url.GetFilename().c_str());
+      return false;
+    }
+  }
+
   bool Rename(const kodi::addon::VFSUrl& url_from, const kodi::addon::VFSUrl& url_to) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url_from);
