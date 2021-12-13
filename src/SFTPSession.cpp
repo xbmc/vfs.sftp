@@ -320,7 +320,7 @@ bool CSFTPSession::DeleteFile(const std::string& path)
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
   int result = sftp_unlink(m_sftp_session, CorrectPath(path).c_str());
-  return result;
+  return result == 0 ? true : false;
 }
 
 bool CSFTPSession::DeleteDirectory(const std::string& path)
@@ -328,7 +328,7 @@ bool CSFTPSession::DeleteDirectory(const std::string& path)
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
   int result = sftp_rmdir(m_sftp_session, CorrectPath(path).c_str());
-  return result;
+  return result == 0 ? true : false;
 }
 
 bool CSFTPSession::CreateDirectory(const std::string& path)
@@ -336,7 +336,7 @@ bool CSFTPSession::CreateDirectory(const std::string& path)
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
   int result = sftp_mkdir(m_sftp_session, CorrectPath(path).c_str(), S_IRWXU);
-  return result;
+  return result == 0 ? true : false;
 }
 
 bool CSFTPSession::RenameFile(const std::string& path_from, const std::string& path_to)
@@ -344,7 +344,7 @@ bool CSFTPSession::RenameFile(const std::string& path_from, const std::string& p
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
   int result = sftp_rename(m_sftp_session, CorrectPath(path_from).c_str(), CorrectPath(path_to).c_str());
-  return result;
+  return result == 0 ? true : false;
 }
 
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
