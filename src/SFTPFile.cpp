@@ -240,9 +240,9 @@ public:
   kodi::addon::VFSFileHandle OpenForWrite(const kodi::addon::VFSUrl& url, bool overWrite) override
   {
     if (overWrite)
-      return OpenInternal(url, O_CREAT | O_RDWR | O_TRUNC);
+      return OpenInternal(url, O_RDWR | O_CREAT | O_TRUNC);
     else
-      return OpenInternal(url, O_CREAT | O_RDWR);
+      return OpenInternal(url, O_RDWR | O_CREAT);
   }
 
   int Truncate(kodi::addon::VFSFileHandle context, int64_t size) override

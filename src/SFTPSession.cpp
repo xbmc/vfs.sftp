@@ -96,7 +96,7 @@ sftp_file CSFTPSession::CreateFileHande(const std::string& file, mode_t mode)
   {
     std::unique_lock<std::recursive_mutex> lock(m_lock);
     m_LastActive = std::chrono::high_resolution_clock::now();
-    sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), mode, 0);
+    sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), mode, S_IRUSR | S_IWUSR);
     if (handle)
     {
       sftp_file_set_blocking(handle);
