@@ -1,0 +1,26 @@
+# Kodi Media Center language file
+# Addon Name: SFTP support
+# Addon id: vfs.sftp
+# Addon Provider: Team Kodi
+msgid ""
+msgstr ""
+"Project-Id-Version: KODI Main\n"
+"Report-Msgid-Bugs-To: translations@kodi.tv\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2021-10-17 09:30+0000\n"
+"Last-Translator: taxigps <taxigps@sina.com>\n"
+"Language-Team: Chinese (China) <https://kodi.weblate.cloud/projects/kodi-add-ons-virtual-filesystems/vfs-sftp/zh_cn/>\n"
+"Language: zh_cn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.8\n"
+
+msgctxt "Addon Summary"
+msgid "SSH File Transfer Protocol support"
+msgstr "SSH 文件传输协议支持"
+
+msgctxt "Addon Description"
+msgid "The SSH File Transfer Protocol (also Secure File Transfer Protocol, or SFTP) is a network protocol that provides file access, file transfer, and file management over any reliable data stream.[CR][CR]This addon allows file access to data in it."
+msgstr "SSH 文件传输协议（也称为安全文件传输协议，或 SFTP）是一种网络协议，通过任何可靠的数据流提供文件访问、文件传输和文件管理。[CR][CR]此插件允许文件访问其中的数据。"

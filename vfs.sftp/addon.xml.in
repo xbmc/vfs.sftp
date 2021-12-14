@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="vfs.sftp"
-  version="20.0.0"
+  version="19.0.0"
   name="SFTP support"
   provider-name="spiff">
   <requires>@ADDON_DEPENDS@</requires>
@@ -29,9 +29,23 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
+    <summary lang="da_DK">Understøttelse af SSH filoverførselses-protokol (SSH File Transfer Protocol)</summary>
     <summary lang="de_DE">Unterstützung für SSH File Transfer Protocol</summary>
     <summary lang="en_GB">SSH File Transfer Protocol support</summary>
+    <summary lang="es_MX">Soporte para FTP mediante SSH</summary>
+    <summary lang="ko_KR">SSH 파일 전송 프로토콜 지원</summary>
+    <summary lang="pl_PL">Obsługa SSH File Transfer Protocol (SFTP)</summary>
+    <summary lang="pt_BR">Suporte para protocolo de transferência de arquivos SSH</summary>
+    <summary lang="ru_RU">Поддержка протокола передачи файлов SSH</summary>
+    <summary lang="zh_CN">SSH 文件传输协议支持</summary>
+    <description lang="da_DK">SSH File Transfer Protocol (SSH filoverførsels-protokol) (også Secure File Transfer Protocol eller SFTP) er en netværksprotokol, der giver filadgang, filoverførsel og filhåndtering over enhver pålidelig datastream.[CR][CR]Dette add-on tillader filadgang til data indeni.</description>
     <description lang="de_DE">Das SSH File Transfer Protocol (auch Secure File Transfer Protocol oder SFTP) ist ein Netzwerkprotokoll, das Dateizugriff, Dateiübertragung und Dateiverwaltung über jeden zuverlässigen Datenstrom ermöglicht.[CR][CR]Dieses Addon ermöglicht den Dateizugriff auf darin enthaltene Daten.</description>
     <description lang="en_GB">The SSH File Transfer Protocol (also Secure File Transfer Protocol, or SFTP) is a network protocol that provides file access, file transfer, and file management over any reliable data stream.[CR][CR]This addon allows file access to data in it.</description>
+    <description lang="es_MX">El Protocolo de Transferencia de Archivos mediante SSH (también llamado Protocolo de Transferencia de Archivos Seguro, SFTP por sus siglas en inglés) es un protocolo que provee acceso, transferencia y administración de archivos mediante cualquier conexión de red estable.[CR][CR]Este complemento habilita el acceso a datos mediante este protocolo.</description>
+    <description lang="ko_KR">SSH 파일 전송 프로토콜(SFTP)은 신뢰할 수 있는 데이터 스트림을 통해 파일 액세스, 파일 전송 및 파일 관리를 제공하는 네트워크 프로토콜입니다.[CR][CR]이 애드온을 사용하면 데이터에 대한 파일 액세스가 허용됩니다.</description>
+    <description lang="pl_PL">SSH File Transfer Protocol (również Secure File Transfer Protocol lub SFTP) to protokół sieciowy, który zapewnia dostęp do plików, ich transfer i zarządzanie nimi za pośrednictwem dowolnego niezawodnego strumienia danych.[CR][CR]Dodatek ten umożliwia dostęp do plików z danymi w nich zawartymi.</description>
+    <description lang="pt_BR">O SSH File Transfer Protocol (também Secure File Transfer Protocol, ou SFTP) é um protocolo de rede que fornece acesso, transferência e gerenciamento de arquivos, através de qualquer conexão fiável.[CR][CR]Este add-on permite acesso aos arquivos de dados, por meio desse protocolo.</description>
+    <description lang="ru_RU">SSH File Transfer Protocol (также Secure File Transfer Protocol, или SFTP) - это сетевой протокол, который обеспечивает доступ к файлам, передачу файлов и управление файлами через любой надёжный поток данных.</description>
+    <description lang="zh_CN">SSH 文件传输协议（也称为安全文件传输协议，或 SFTP）是一种网络协议，通过任何可靠的数据流提供文件访问、文件传输和文件管理。[CR][CR]此插件允许文件访问其中的数据。</description>
   </extension>
 </addon>
