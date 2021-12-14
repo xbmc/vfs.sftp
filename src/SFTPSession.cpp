@@ -23,6 +23,15 @@
 #ifndef S_ISLNK
 #define S_ISLNK(m) ((((m)) & 0170000) == (0120000))
 #endif
+#ifndef S_IWUSR
+#define S_IWUSR 00200
+#endif
+#ifndef S_IRUSR
+#define S_IRUSR 00400
+#endif
+#ifndef S_IRWXU
+#define S_IRWXU 00700
+#endif
 
 
 static std::string CorrectPath(const std::string& path)
