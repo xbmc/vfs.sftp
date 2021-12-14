@@ -23,6 +23,15 @@
 #ifndef S_ISLNK
 #define S_ISLNK(m) ((((m)) & 0170000) == (0120000))
 #endif
+#ifndef S_IWUSR
+#define S_IWUSR 00200
+#endif
+#ifndef S_IRUSR
+#define S_IRUSR 00400
+#endif
+#ifndef S_IRWXU
+#define S_IRWXU 00700
+#endif
 
 
 static std::string CorrectPath(const std::string& path)
@@ -90,13 +99,13 @@ CSFTPSession::~CSFTPSession()
   Disconnect();
 }
 
-sftp_file CSFTPSession::CreateFileHande(const std::string& file)
+sftp_file CSFTPSession::CreateFileHande(const std::string& file, mode_t mode)
 {
   if (m_connected)
   {
     std::unique_lock<std::recursive_mutex> lock(m_lock);
     m_LastActive = std::chrono::high_resolution_clock::now();
-    sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), O_RDONLY, 0);
+    sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), mode, S_IRUSR | S_IWUSR);
     if (handle)
     {
       sftp_file_set_blocking(handle);
@@ -291,6 +300,14 @@ int CSFTPSession::Read(sftp_file handle, void* buffer, size_t length)
   return result;
 }
 
+int CSFTPSession::Write(sftp_file handle, const void* buffer, size_t length)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_write(handle, buffer, length);
+  return result;
+}
+
 int64_t CSFTPSession::GetPosition(sftp_file handle)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
@@ -305,6 +322,38 @@ bool CSFTPSession::IsIdle()
   return static_cast<int>(
              std::chrono::duration_cast<std::chrono::milliseconds>(now - m_LastActive).count()) >
          90000;
+}
+
+bool CSFTPSession::DeleteFile(const std::string& path)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_unlink(m_sftp_session, CorrectPath(path).c_str());
+  return result == 0 ? true : false;
+}
+
+bool CSFTPSession::DeleteDirectory(const std::string& path)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_rmdir(m_sftp_session, CorrectPath(path).c_str());
+  return result == 0 ? true : false;
+}
+
+bool CSFTPSession::MakeDirectory(const std::string& path)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_mkdir(m_sftp_session, CorrectPath(path).c_str(), S_IRWXU);
+  return result == 0 ? true : false;
+}
+
+bool CSFTPSession::RenameFile(const std::string& path_from, const std::string& path_to)
+{
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  int result = sftp_rename(m_sftp_session, CorrectPath(path_from).c_str(), CorrectPath(path_to).c_str());
+  return result == 0 ? true : false;
 }
 
 bool CSFTPSession::VerifyKnownHost(ssh_session session)

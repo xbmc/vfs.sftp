@@ -5,12 +5,22 @@
  *  See LICENSE.md for more information.
  */
 
+
+#include <map>
+#include <sstream>
+#include <fcntl.h>
 #include "SFTPSession.h"
+
+// This works around a Windows build bug whereby those functions are defined as macro
+#if defined(CreateDirectory)
+#undef CreateDirectory
+#endif
+#if defined(RemoveDirectory)
+#undef RemoveDirectory
+#endif
 
 #include <kodi/General.h>
 #include <kodi/addon-instance/VFS.h>
-#include <map>
-#include <sstream>
 
 class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
 {
@@ -26,22 +36,7 @@ public:
 
   kodi::addon::VFSFileHandle Open(const kodi::addon::VFSUrl& url) override
   {
-    SFTPContext* result = new SFTPContext;
-
-    result->session = CSFTPSessionManager::Get().CreateSession(url);
-
-    if (result->session)
-    {
-      result->file = url.GetFilename().c_str();
-      result->sftp_handle = result->session->CreateFileHande(result->file);
-      if (result->sftp_handle)
-        return result;
-    }
-    else
-      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to allocate session");
-
-    delete result;
-    return nullptr;
+    return OpenInternal(url, O_RDONLY);
   }
 
   ssize_t Read(kodi::addon::VFSFileHandle context, uint8_t* buffer, size_t uiBufSize) override
@@ -54,10 +49,28 @@ public:
       if (rc >= 0)
         return rc;
       else
-        kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to read %i", rc);
+        kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to read %s", ctx->file.c_str());
     }
     else
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't read without a handle");
+
+    return -1;
+  }
+
+  ssize_t Write(kodi::addon::VFSFileHandle context, const uint8_t* buffer, size_t uiBufSize) override
+  {
+    SFTPContext* ctx = static_cast<SFTPContext*>(context);
+    if (ctx && ctx->session && ctx->sftp_handle)
+    {
+      int writeBytes = ctx->session->Write(ctx->sftp_handle, buffer, uiBufSize);
+
+      if (writeBytes >= 0)
+        return writeBytes;
+      else
+        kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to write %s", ctx->file.c_str());
+    }
+    else
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't write without a handle");
 
     return -1;
   }
@@ -172,6 +185,106 @@ public:
         << url.GetHostname() << ":" << (url.GetPort() ? url.GetPort() : 22) << "/";
 
     return session->GetDirectory(str.str(), url.GetFilename(), items);
+  }
+
+  bool Delete(const kodi::addon::VFSUrl& url) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
+    if (session)
+      return session->DeleteFile(url.GetFilename());
+    else
+    {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to delete file '%s'",
+                url.GetFilename().c_str());
+      return false;
+    }
+  }
+
+  bool RemoveDirectory(const kodi::addon::VFSUrl& url) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
+    if (session)
+      return session->DeleteDirectory(url.GetFilename());
+    else
+    {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to delete folder '%s'",
+                url.GetFilename().c_str());
+      return false;
+    }
+  }
+
+  bool CreateDirectory(const kodi::addon::VFSUrl& url) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
+    if (session)
+      return session->MakeDirectory(url.GetFilename());
+    else
+    {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to create folder '%s'",
+                url.GetFilename().c_str());
+      return false;
+    }
+  }
+
+  bool Rename(const kodi::addon::VFSUrl& url_from, const kodi::addon::VFSUrl& url_to) override
+  {
+    CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url_from);
+    if (session)
+      return session->RenameFile(url_from.GetFilename(), url_to.GetFilename());
+    else
+    {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to rename file '%s'",
+                url_from.GetFilename().c_str());
+      return false;
+    }
+  }
+
+  bool ContainsFiles(const kodi::addon::VFSUrl& url,
+                    std::vector<kodi::vfs::CDirEntry>& items,
+                    std::string &rootPath) override
+  {
+    return DirectoryExists(url) && !items.empty();
+  }
+
+  kodi::addon::VFSFileHandle OpenForWrite(const kodi::addon::VFSUrl& url, bool overWrite) override
+  {
+    if (overWrite)
+      return OpenInternal(url, O_RDWR | O_CREAT | O_TRUNC);
+    else
+      return OpenInternal(url, O_RDWR | O_CREAT);
+  }
+
+  int Truncate(kodi::addon::VFSFileHandle context, int64_t size) override
+  {
+    kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Truncate is not implemented");
+    return -1;
+  }
+
+  bool IoControlGetCacheStatus (kodi::addon::VFSFileHandle context, kodi::vfs::CacheStatus &status) override { return false; }
+
+  bool IoControlSetCacheRate (kodi::addon::VFSFileHandle context, unsigned int rate) override { return false; }
+
+  bool IoControlSetRetry (kodi::addon::VFSFileHandle context, bool retry) override { return false; }
+
+private:
+  kodi::addon::VFSFileHandle OpenInternal(const kodi::addon::VFSUrl& url, mode_t mode)
+  {
+    SFTPContext* result = new SFTPContext;
+
+    result->session = CSFTPSessionManager::Get().CreateSession(url);
+
+    if (result->session)
+    {
+      result->file = url.GetFilename().c_str();
+      result->sftp_handle = result->session->CreateFileHande(result->file, mode);
+      if (result->sftp_handle)
+        return result;
+    }
+    else
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to allocate session");
+
+    delete result;
+    return nullptr;
   }
 };
 
