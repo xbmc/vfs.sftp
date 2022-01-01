@@ -23,7 +23,7 @@ public:
   CSFTPSession(const kodi::addon::VFSUrl& url);
   virtual ~CSFTPSession();
 
-  sftp_file CreateFileHande(const std::string& file);
+  sftp_file CreateFileHande(const std::string& file, mode_t mode);
   void CloseFileHandle(sftp_file handle);
   bool GetDirectory(const std::string& base,
                     const std::string& folder,
@@ -33,8 +33,13 @@ public:
   int Stat(const std::string& path, kodi::vfs::FileStatus& buffer);
   int Seek(sftp_file handle, uint64_t position);
   int Read(sftp_file handle, void* buffer, size_t length);
+  int Write(sftp_file handle, const void* buffer, size_t length);
   int64_t GetPosition(sftp_file handle);
   bool IsIdle();
+  bool DeleteFile(const std::string& path);
+  bool DeleteDirectory(const std::string& path);
+  bool MakeDirectory(const std::string& path);
+  bool RenameFile(const std::string& path_from, const std::string& path_to);
 
 private:
   bool VerifyKnownHost(ssh_session session);
