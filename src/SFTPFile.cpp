@@ -22,7 +22,7 @@
 #include <kodi/General.h>
 #include <kodi/addon-instance/VFS.h>
 
-class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
+class ATTR_DLL_LOCAL CSFTPFile : public kodi::addon::CInstanceVFS
 {
   struct SFTPContext
   {
@@ -32,7 +32,7 @@ class ATTRIBUTE_HIDDEN CSFTPFile : public kodi::addon::CInstanceVFS
   };
 
 public:
-  CSFTPFile(KODI_HANDLE instance, const std::string& version) : CInstanceVFS(instance, version) {}
+  CSFTPFile(const kodi::addon::IInstanceInfo& instance) : CInstanceVFS(instance) {}
 
   kodi::addon::VFSFileHandle Open(const kodi::addon::VFSUrl& url) override
   {
@@ -262,7 +262,7 @@ public:
 
   bool IoControlGetCacheStatus (kodi::addon::VFSFileHandle context, kodi::vfs::CacheStatus &status) override { return false; }
 
-  bool IoControlSetCacheRate (kodi::addon::VFSFileHandle context, unsigned int rate) override { return false; }
+  bool IoControlSetCacheRate (kodi::addon::VFSFileHandle context, uint32_t rate) override { return false; }
 
   bool IoControlSetRetry (kodi::addon::VFSFileHandle context, bool retry) override { return false; }
 
@@ -288,20 +288,17 @@ private:
   }
 };
 
-class ATTRIBUTE_HIDDEN CMyAddon : public kodi::addon::CAddonBase
+class ATTR_DLL_LOCAL CMyAddon : public kodi::addon::CAddonBase
 {
 public:
   CMyAddon() { ssh_init(); }
 
   ~CMyAddon() override { ssh_finalize(); }
 
-  ADDON_STATUS CreateInstance(int instanceType,
-                              const std::string& instanceID,
-                              KODI_HANDLE instance,
-                              const std::string& version,
-                              KODI_HANDLE& addonInstance) override
+  ADDON_STATUS CreateInstance(const kodi::addon::IInstanceInfo& instance,
+                              KODI_ADDON_INSTANCE_HDL& hdl) override
   {
-    addonInstance = new CSFTPFile(instance, version);
+    hdl = new CSFTPFile(instance);
     return ADDON_STATUS_OK;
   }
 };
