@@ -28,6 +28,7 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
+    <summary lang="cs_CZ">Podpora SSH File Transfer Protokolu</summary>
     <summary lang="da_DK">Understøttelse af SSH filoverførselses-protokol (SSH File Transfer Protocol)</summary>
     <summary lang="de_DE">Unterstützung für SSH File Transfer Protocol</summary>
     <summary lang="en_GB">SSH File Transfer Protocol support</summary>
