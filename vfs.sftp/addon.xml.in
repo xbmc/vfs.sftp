@@ -28,6 +28,7 @@
     <assets>
       <icon>icon.png</icon>
     </assets>
+    <summary lang="ca_ES">Suport del protocol de transferència de fitxers SSH</summary>
     <summary lang="cs_CZ">Podpora SSH File Transfer Protokolu</summary>
     <summary lang="da_DK">Understøttelse af SSH filoverførselses-protokol (SSH File Transfer Protocol)</summary>
     <summary lang="de_DE">Unterstützung für SSH File Transfer Protocol</summary>
@@ -35,18 +36,21 @@
     <summary lang="es_ES">Soporte de Protocolo de Transfrencia de Archivos SSH</summary>
     <summary lang="es_MX">Soporte para FTP mediante SSH</summary>
     <summary lang="fi_FI">SFTP (SSH File Transfer Protocol) -protokollan tuki</summary>
+    <summary lang="it_IT">Supporto al protocollo di trasferimento file SSH</summary>
     <summary lang="ko_KR">SSH 파일 전송 프로토콜 지원</summary>
     <summary lang="nb_NO">SSH-filoverføringsprotokoll (SFTP)-støtte</summary>
     <summary lang="pl_PL">Obsługa SSH File Transfer Protocol (SFTP)</summary>
     <summary lang="pt_BR">Suporte para protocolo de transferência de arquivos SSH</summary>
     <summary lang="ru_RU">Поддержка протокола передачи файлов SSH</summary>
     <summary lang="zh_CN">SSH 文件传输协议支持</summary>
+    <description lang="ca_ES">El protocol de transferència de fitxers per SSH (o protocol de transferència de fitxers segur, o SFTP) és un protocol de xarxa que proporciona accés a fitxers, transferència de fitxers i gestió de fitxers a través de qualsevol flux de dades fiable.[CR][CR]Aquest complement permet accedir a les dades dels fitxers que hi ha.</description>
     <description lang="da_DK">SSH File Transfer Protocol (SSH filoverførsels-protokol) (også Secure File Transfer Protocol eller SFTP) er en netværksprotokol, der giver filadgang, filoverførsel og filhåndtering over enhver pålidelig datastream.[CR][CR]Dette add-on tillader filadgang til data indeni.</description>
     <description lang="de_DE">Das SSH File Transfer Protocol (auch Secure File Transfer Protocol oder SFTP) ist ein Netzwerkprotokoll, das Dateizugriff, Dateiübertragung und Dateiverwaltung über jeden zuverlässigen Datenstrom ermöglicht.[CR][CR]Dieses Addon ermöglicht den Dateizugriff auf darin enthaltene Daten.</description>
     <description lang="en_GB">The SSH File Transfer Protocol (also Secure File Transfer Protocol, or SFTP) is a network protocol that provides file access, file transfer, and file management over any reliable data stream.[CR][CR]This addon allows file access to data in it.</description>
     <description lang="es_ES">El Protocolo de Transferencia de archivos SSH (conocido como Secure File Transfer Protocol o SFTP) es un protocolo de red que provee de acceso, transferencia y gestión de archivos sobre cualquier flujo de datos confiable.[CR][CR]Este addon permite acceder a los datos de esos archivos.</description>
     <description lang="es_MX">El Protocolo de Transferencia de Archivos mediante SSH (también llamado Protocolo de Transferencia de Archivos Seguro, SFTP por sus siglas en inglés) es un protocolo que provee acceso, transferencia y administración de archivos mediante cualquier conexión de red estable.[CR][CR]Este complemento habilita el acceso a datos mediante este protocolo.</description>
     <description lang="fi_FI">SFTP (SSH File Transfer Protocol tai Secure File Transfer Protocol) on verkkoprotokolla, joka mahdollistaa tiedostojen käytön, siirron ja hallinnan minkä tahansa luotettavan tietovirran kautta.[CR][CR]Tämä lisäosa mahdollistaa tiedostojen käytön sen välityksellä.</description>
+    <description lang="it_IT">Il protocollo di trasferimento file SSH (anche Secure File Transfer Protocol o SFTP) è un protocollo di rete che fornisce accesso ai file, trasferimento file e gestione dei file su qualsiasi flusso di dati affidabile.[CR][CR]Questo componente aggiuntivo consente l&apos;accesso ai dati in esso.</description>
     <description lang="ko_KR">SSH 파일 전송 프로토콜(SFTP)은 신뢰할 수 있는 데이터 스트림을 통해 파일 액세스, 파일 전송 및 파일 관리를 제공하는 네트워크 프로토콜입니다.[CR][CR]이 애드온을 사용하면 데이터에 대한 파일 액세스가 허용됩니다.</description>
     <description lang="nb_NO">SSH File Transfer Protocol (også kjent som Secure File Transfer Protocol, eller SFTP) er en nettverksprotokoll som gir tilgang til filer, filoverføring og filbehandling over enhver pålitelig datastrøm.[CR][CR]Denne utvidelsen gir filtilgang til data i den.</description>
     <description lang="pl_PL">SSH File Transfer Protocol (również Secure File Transfer Protocol lub SFTP) to protokół sieciowy, który zapewnia dostęp do plików, ich transfer i zarządzanie nimi za pośrednictwem dowolnego niezawodnego strumienia danych.[CR][CR]Dodatek ten umożliwia dostęp do plików z danymi w nich zawartymi.</description>
