@@ -36,6 +36,7 @@
     <summary lang="es_ES">Soporte de Protocolo de Transfrencia de Archivos SSH</summary>
     <summary lang="es_MX">Soporte para FTP mediante SSH</summary>
     <summary lang="fi_FI">SFTP (SSH File Transfer Protocol) -protokollan tuki</summary>
+    <summary lang="fr_FR">Prise en charge du protocole de transfert de fichiers SSH</summary>
     <summary lang="it_IT">Supporto al protocollo di trasferimento file SSH</summary>
     <summary lang="ko_KR">SSH 파일 전송 프로토콜 지원</summary>
     <summary lang="lv_LV">SSH failu pārsūtīšanas protokola atbalsts</summary>
@@ -51,7 +52,8 @@
     <description lang="es_ES">El Protocolo de Transferencia de archivos SSH (conocido como Secure File Transfer Protocol o SFTP) es un protocolo de red que provee de acceso, transferencia y gestión de archivos sobre cualquier flujo de datos confiable.[CR][CR]Este addon permite acceder a los datos de esos archivos.</description>
     <description lang="es_MX">El Protocolo de Transferencia de Archivos mediante SSH (también llamado Protocolo de Transferencia de Archivos Seguro, SFTP por sus siglas en inglés) es un protocolo que provee acceso, transferencia y administración de archivos mediante cualquier conexión de red estable.[CR][CR]Este complemento habilita el acceso a datos mediante este protocolo.</description>
     <description lang="fi_FI">SFTP (SSH File Transfer Protocol tai Secure File Transfer Protocol) on verkkoprotokolla, joka mahdollistaa tiedostojen käytön, siirron ja hallinnan minkä tahansa luotettavan tietovirran kautta.[CR][CR]Tämä lisäosa mahdollistaa tiedostojen käytön sen välityksellä.</description>
-    <description lang="it_IT">Il protocollo di trasferimento file SSH (anche Secure File Transfer Protocol o SFTP) è un protocollo di rete che fornisce accesso ai file, trasferimento file e gestione dei file su qualsiasi flusso di dati affidabile.[CR][CR]Questo componente aggiuntivo consente l&apos;accesso ai dati in esso.</description>
+    <description lang="fr_FR">Le protocole de transfert de fichiers SSH (également le protocole de transfert de fichiers sécurisé ou SFTP) est un protocole réseau qui fournit l&apos;accès aux fichiers, le transfert de fichiers et la gestion des fichiers sur n&apos;importe quel flux de données fiable.[CR][CR]Ce module complémentaire permet l&apos;accès a ses informations.</description>
+    <description lang="it_IT">Il protocollo di trasferimento file SSH (anche Secure File Transfer Protocol o SFTP) è un protocollo di rete che fornisce accesso ai file, trasferimento file e gestione dei file su qualsiasi flusso di dati affidabile.[CR][CR]Questo Add--on consente accesso ai file ai dati in esso contenuti.</description>
     <description lang="ko_KR">SSH 파일 전송 프로토콜(SFTP)은 신뢰할 수 있는 데이터 스트림을 통해 파일 액세스, 파일 전송 및 파일 관리를 제공하는 네트워크 프로토콜입니다.[CR][CR]이 애드온을 사용하면 데이터에 대한 파일 액세스가 허용됩니다.</description>
     <description lang="lv_LV">SSH failu pārsūtīšanas protokols (arī Secure File Transfer Protocol jeb SFTP) ir tīkla protokols, kas nodrošina piekļuvi failiem, failu pārsūtīšanu un failu pārvaldību, izmantojot drošu datu kanālu.</description>
     <description lang="nb_NO">SSH File Transfer Protocol (også kjent som Secure File Transfer Protocol, eller SFTP) er en nettverksprotokoll som gir tilgang til filer, filoverføring og filbehandling over enhver pålitelig datastrøm.[CR][CR]Denne utvidelsen gir filtilgang til data i den.</description>
