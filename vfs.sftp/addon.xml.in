@@ -29,7 +29,7 @@
       <icon>icon.png</icon>
     </assets>
     <summary lang="ca_ES">Suport del protocol de transferència de fitxers SSH</summary>
-    <summary lang="cs_CZ">Podpora SSH File Transfer Protokolu</summary>
+    <summary lang="cs_CZ">Podpora protokolu SSH File Transfer</summary>
     <summary lang="da_DK">Understøttelse af SSH filoverførselses-protokol (SSH File Transfer Protocol)</summary>
     <summary lang="de_DE">Unterstützung für SSH File Transfer Protocol</summary>
     <summary lang="en_GB">SSH File Transfer Protocol support</summary>
@@ -47,6 +47,7 @@
     <summary lang="ru_RU">Поддержка протокола передачи файлов SSH</summary>
     <summary lang="zh_CN">SSH 文件传输协议支持</summary>
     <description lang="ca_ES">El protocol de transferència de fitxers per SSH (o protocol de transferència de fitxers segur, o SFTP) és un protocol de xarxa que proporciona accés a fitxers, transferència de fitxers i gestió de fitxers a través de qualsevol flux de dades fiable.[CR][CR]Aquest complement permet accedir a les dades dels fitxers que hi ha.</description>
+    <description lang="cs_CZ">SSH File Transfer Protocol (také Secure File Transfer Protocol nebo SFTP) je síťový protokol, který poskytuje přístup, přenos a správu souborů přes jakýkoliv spolehlivý datový přenos.[CR][CR]Tento doplněk umožňuje přístup k datům.</description>
     <description lang="da_DK">SSH File Transfer Protocol (SSH filoverførsels-protokol) (også Secure File Transfer Protocol eller SFTP) er en netværksprotokol, der giver filadgang, filoverførsel og filhåndtering over enhver pålidelig datastream.[CR][CR]Dette add-on tillader filadgang til data indeni.</description>
     <description lang="de_DE">Das SSH File Transfer Protocol (auch Secure File Transfer Protocol oder SFTP) ist ein Netzwerkprotokoll, das Dateizugriff, Dateiübertragung und Dateiverwaltung über jeden zuverlässigen Datenstrom ermöglicht.[CR][CR]Dieses Addon ermöglicht den Dateizugriff auf darin enthaltene Daten.</description>
     <description lang="en_GB">The SSH File Transfer Protocol (also Secure File Transfer Protocol, or SFTP) is a network protocol that provides file access, file transfer, and file management over any reliable data stream.[CR][CR]This addon allows file access to data in it.</description>
