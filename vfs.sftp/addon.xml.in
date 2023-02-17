@@ -16,6 +16,7 @@
     supportPassword="true"
     supportPort="true"
     supportBrowsing="false"
+    supportWrite="true"
     defaultPort="22"
     type="sftp"
     label="20260"
