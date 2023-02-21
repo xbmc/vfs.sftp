@@ -151,8 +151,6 @@ bool CSFTPSession::GetDirectory(const std::string& base,
   if (!dir)
     sftp_error = sftp_get_error(m_sftp_session);
 
-  lock.unlock();
-
   if (!dir)
   {
     kodi::Log(ADDON_LOG_ERROR, "%s: %s for '%s'", __FUNCTION__, SFTPErrorText(sftp_error),
@@ -161,8 +159,6 @@ bool CSFTPSession::GetDirectory(const std::string& base,
   }
 
   std::vector<sftp_attributes> elements;
-
-  lock.lock();
   while(true) {
     sftp_attributes attributes = sftp_readdir(m_sftp_session, dir);
     if (attributes == nullptr) {
@@ -183,11 +179,16 @@ bool CSFTPSession::GetDirectory(const std::string& base,
     {
       std::string localPath = folder;
       localPath.append(attributes->name);
-      sftp_attributes_free(attributes);
-      attributes = sftp_stat(m_sftp_session, CorrectPath(localPath).c_str());
-      if (attributes == nullptr) {
+      
+      sftp_attributes symattr = sftp_stat(m_sftp_session, CorrectPath(localPath).c_str());
+      if (symattr == nullptr) {
+        sftp_attributes_free(attributes);
         continue;
       }
+
+      std::swap(attributes->name, symattr->name);
+      sftp_attributes_free(attributes);
+      attributes = symattr;
     }
 
     elements.push_back(attributes);
