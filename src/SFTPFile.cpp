@@ -64,7 +64,7 @@ public:
     }
 
     int writeBytes = ctx->session->Write(ctx->sftp_handle, buffer, uiBufSize);
-    if (writeBytes >= 0)
+    if (writeBytes >= 0) {
       return writeBytes;
     }
 
