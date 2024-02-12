@@ -43,6 +43,7 @@
     <summary lang="ko_KR">SSH 파일 전송 프로토콜 지원</summary>
     <summary lang="lv_LV">SSH failu pārsūtīšanas protokola atbalsts</summary>
     <summary lang="nb_NO">SSH-filoverføringsprotokoll (SFTP)-støtte</summary>
+    <summary lang="nl_NL">Ondersteuning voor SSH File Transfer Protocol</summary>
     <summary lang="pl_PL">Obsługa SSH File Transfer Protocol (SFTP)</summary>
     <summary lang="pt_BR">Suporte para protocolo de transferência de arquivos SSH</summary>
     <summary lang="ru_RU">Поддержка протокола передачи файлов SSH</summary>
