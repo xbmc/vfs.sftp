@@ -86,9 +86,11 @@ CSFTPSession::CSFTPSession(const kodi::addon::VFSUrl& url)
 {
   kodi::Log(ADDON_LOG_INFO, "SFTPSession: Creating new session on host '%s:%d' with user '%s'",
             url.GetHostname().c_str(), url.GetPort(), url.GetUsername().c_str());
-  std::unique_lock<std::recursive_mutex> lock(m_lock);
-  if (!Connect(url))
-    Disconnect();
+  {
+    std::unique_lock<std::recursive_mutex> lock(m_lock);
+    if (!Connect(url))
+      Disconnect();
+  }
 
   m_LastActive = std::chrono::high_resolution_clock::now();
 }
@@ -101,25 +103,26 @@ CSFTPSession::~CSFTPSession()
 
 sftp_file CSFTPSession::CreateFileHande(const std::string& file, mode_t mode)
 {
-  if (m_connected)
+  if (!m_connected)
   {
-    std::unique_lock<std::recursive_mutex> lock(m_lock);
-    m_LastActive = std::chrono::high_resolution_clock::now();
-    sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), mode, S_IRUSR | S_IWUSR);
-    if (handle)
-    {
-      sftp_file_set_blocking(handle);
-      return handle;
-    }
-    else
-      kodi::Log(ADDON_LOG_ERROR,
-                "SFTPSession: Was connected but couldn't create filehandle for '%s'", file.c_str());
+    kodi::Log(ADDON_LOG_ERROR,
+              "SFTPSession: Not connected and can't create file handle for '%s'", file.c_str());
+    return nullptr;
   }
-  else
-    kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Not connected and can't create file handle for '%s'",
-              file.c_str());
 
-  return nullptr;
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  sftp_file handle = sftp_open(m_sftp_session, CorrectPath(file).c_str(), mode, S_IRUSR | S_IWUSR);
+  if (!handle)
+  {
+    lock.unlock();
+    kodi::Log(ADDON_LOG_ERROR,
+              "SFTPSession: Was connected but couldn't create filehandle for '%s'", file.c_str());
+    return nullptr;
+  }
+
+  sftp_file_set_blocking(handle);
+  return handle;
 }
 
 void CSFTPSession::CloseFileHandle(sftp_file handle)
@@ -133,102 +136,103 @@ bool CSFTPSession::GetDirectory(const std::string& base,
                                 std::vector<kodi::vfs::CDirEntry>& items)
 {
   int sftp_error = SSH_FX_OK;
-  if (m_connected)
+  if (!m_connected)
   {
-    sftp_dir dir = nullptr;
-
-    std::unique_lock<std::recursive_mutex> lock(m_lock);
-    m_LastActive = std::chrono::high_resolution_clock::now();
-    dir = sftp_opendir(m_sftp_session, CorrectPath(folder).c_str());
-
-    //Doing as little work as possible within the critical section
-    if (!dir)
-      sftp_error = sftp_get_error(m_sftp_session);
-
-    lock.unlock();
-
-    if (!dir)
-    {
-      kodi::Log(ADDON_LOG_ERROR, "%s: %s for '%s'", __FUNCTION__, SFTPErrorText(sftp_error),
-                folder.c_str());
-    }
-    else
-    {
-      bool read = true;
-      while (read)
-      {
-        sftp_attributes attributes = nullptr;
-
-        lock.lock();
-        read = sftp_dir_eof(dir) == 0;
-        attributes = sftp_readdir(m_sftp_session, dir);
-        lock.unlock();
-
-        if (attributes && (attributes->name == nullptr || strcmp(attributes->name, "..") == 0 ||
-                           strcmp(attributes->name, ".") == 0))
-        {
-          lock.lock();
-          sftp_attributes_free(attributes);
-          lock.unlock();
-          continue;
-        }
-
-        if (attributes)
-        {
-          std::string itemName = attributes->name;
-          std::string localPath = folder;
-          localPath.append(itemName);
-
-          if (attributes->type == SSH_FILEXFER_TYPE_SYMLINK)
-          {
-            lock.lock();
-            sftp_attributes_free(attributes);
-            attributes = sftp_stat(m_sftp_session, CorrectPath(localPath).c_str());
-            lock.unlock();
-            if (attributes == nullptr)
-              continue;
-          }
-
-          kodi::vfs::CDirEntry entry;
-          entry.SetLabel(itemName);
-
-          if (itemName[0] == '.')
-            entry.AddProperty("file:hidden", "true");
-
-          entry.SetDateTime(attributes->mtime);
-
-          if (attributes->type & SSH_FILEXFER_TYPE_DIRECTORY)
-          {
-            localPath.append("/");
-            entry.SetFolder(true);
-            entry.SetSize(0);
-          }
-          else
-            entry.SetSize(attributes->size);
-
-          entry.SetPath(base + localPath);
-          items.push_back(entry);
-
-          lock.lock();
-          sftp_attributes_free(attributes);
-          lock.unlock();
-        }
-        else
-          read = false;
-      }
-
-      lock.lock();
-      sftp_closedir(dir);
-      lock.unlock();
-
-      return true;
-    }
-  }
-  else
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession: Not connected, can't list directory '%s'",
               folder.c_str());
+    return false;
+  }
 
-  return false;
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  sftp_dir dir = sftp_opendir(m_sftp_session, CorrectPath(folder).c_str());
+
+  //Doing as little work as possible within the critical section
+  if (!dir)
+    sftp_error = sftp_get_error(m_sftp_session);
+
+  if (!dir)
+  {
+    kodi::Log(ADDON_LOG_ERROR, "%s: %s for '%s'", __FUNCTION__, SFTPErrorText(sftp_error),
+              folder.c_str());
+    return false;
+  }
+
+  std::vector<sftp_attributes> elements;
+  while(true) {
+    sftp_attributes attributes = sftp_readdir(m_sftp_session, dir);
+    if (attributes == nullptr) {
+      if (sftp_dir_eof(dir) == 1) {
+        break;
+      }
+
+      continue;
+    }
+
+    if (attributes->name == nullptr || strcmp(attributes->name, "..") == 0 || strcmp(attributes->name, ".") == 0)
+    {
+      sftp_attributes_free(attributes);
+      continue;
+    }
+
+    if (attributes->type == SSH_FILEXFER_TYPE_SYMLINK)
+    {
+      std::string localPath = folder;
+      localPath.append(attributes->name);
+      
+      sftp_attributes symattr = sftp_stat(m_sftp_session, CorrectPath(localPath).c_str());
+      if (symattr == nullptr) {
+        sftp_attributes_free(attributes);
+        continue;
+      }
+
+      std::swap(attributes->name, symattr->name);
+      sftp_attributes_free(attributes);
+      attributes = symattr;
+    }
+
+    elements.push_back(attributes);
+  }
+
+  lock.unlock();
+  items.reserve(elements.size());
+
+  std::for_each(elements.begin(), elements.end(), [&](sftp_attributes attributes) {
+    std::string itemName = attributes->name;
+    std::string localPath = folder;
+    localPath.append(itemName);
+
+    kodi::vfs::CDirEntry entry;
+    entry.SetLabel(itemName);
+
+    if (itemName[0] == '.')
+      entry.AddProperty("file:hidden", "true");
+
+    entry.SetDateTime(attributes->mtime);
+
+    if (attributes->type & SSH_FILEXFER_TYPE_DIRECTORY)
+    {
+      localPath.append("/");
+      entry.SetFolder(true);
+      entry.SetSize(0);
+    }
+    else
+      entry.SetSize(attributes->size);
+
+    entry.SetPath(base + localPath);
+    items.push_back(entry);
+  });
+
+  lock.lock();
+  while (elements.size()) {
+    sftp_attributes attributes = elements.back();
+    elements.pop_back();
+    sftp_attributes_free(attributes);
+  }
+
+  sftp_closedir(dir);
+  lock.unlock();
+  return true;
 }
 
 bool CSFTPSession::DirectoryExists(const std::string& path)
@@ -249,71 +253,61 @@ bool CSFTPSession::FileExists(const std::string& path)
 
 int CSFTPSession::Stat(const std::string& path, kodi::vfs::FileStatus& buffer)
 {
-  if (m_connected)
-  {
-    std::unique_lock<std::recursive_mutex> lock(m_lock);
-    m_LastActive = std::chrono::high_resolution_clock::now();
-    sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
-
-    if (attributes)
-    {
-      buffer.SetSize(attributes->size);
-      buffer.SetModificationTime(attributes->mtime);
-      buffer.SetAccessTime(attributes->atime);
-
-      if S_ISDIR (attributes->permissions)
-        buffer.SetIsDirectory(true);
-      else if S_ISREG (attributes->permissions)
-        buffer.SetIsRegular(true);
-
-      sftp_attributes_free(attributes);
-      return 0;
-    }
-    else
-    {
-      kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed to get attributes for '%s'",
-                path.c_str());
-      return -1;
-    }
-  }
-  else
+  if (!m_connected)
   {
     kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed because not connected for '%s'",
               path.c_str());
     return -1;
   }
+
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  m_LastActive = std::chrono::high_resolution_clock::now();
+  sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
+  if (attributes == nullptr) {
+    kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Stat - Failed to get attributes for '%s'",
+              path.c_str());
+    return -1;
+  }
+
+  buffer.SetSize(attributes->size);
+  buffer.SetModificationTime(attributes->mtime);
+  buffer.SetAccessTime(attributes->atime);
+
+  if S_ISDIR (attributes->permissions)
+    buffer.SetIsDirectory(true);
+  else if S_ISREG (attributes->permissions)
+    buffer.SetIsRegular(true);
+
+  sftp_attributes_free(attributes);
+  return 0;
 }
 
 int CSFTPSession::Seek(sftp_file handle, uint64_t position)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_seek64(handle, position);
-  return result;
+  return sftp_seek64(handle, position);
 }
 
 int CSFTPSession::Read(sftp_file handle, void* buffer, size_t length)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_read(handle, buffer, length);
-  return result;
+  return sftp_read(handle, buffer, length);
 }
 
 int CSFTPSession::Write(sftp_file handle, const void* buffer, size_t length)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_write(handle, buffer, length);
-  return result;
+  return sftp_write(handle, buffer, length);
 }
 
 int64_t CSFTPSession::GetPosition(sftp_file handle)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int64_t result = sftp_tell64(handle);
-  return result;
+  return sftp_tell64(handle);
 }
 
 bool CSFTPSession::IsIdle()
@@ -328,32 +322,28 @@ bool CSFTPSession::DeleteFile(const std::string& path)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_unlink(m_sftp_session, CorrectPath(path).c_str());
-  return result == 0 ? true : false;
+  return sftp_unlink(m_sftp_session, CorrectPath(path).c_str()) == 0 ? true : false;
 }
 
 bool CSFTPSession::DeleteDirectory(const std::string& path)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_rmdir(m_sftp_session, CorrectPath(path).c_str());
-  return result == 0 ? true : false;
+  return sftp_rmdir(m_sftp_session, CorrectPath(path).c_str()) == 0 ? true : false;
 }
 
 bool CSFTPSession::MakeDirectory(const std::string& path)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_mkdir(m_sftp_session, CorrectPath(path).c_str(), S_IRWXU);
-  return result == 0 ? true : false;
+  return sftp_mkdir(m_sftp_session, CorrectPath(path).c_str(), S_IRWXU) == 0 ? true : false;
 }
 
 bool CSFTPSession::RenameFile(const std::string& path_from, const std::string& path_to)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_rename(m_sftp_session, CorrectPath(path_from).c_str(), CorrectPath(path_to).c_str());
-  return result == 0 ? true : false;
+  return sftp_rename(m_sftp_session, CorrectPath(path_from).c_str(), CorrectPath(path_to).c_str()) == 0 ? true : false;
 }
 
 bool CSFTPSession::VerifyKnownHost(ssh_session session)
@@ -579,22 +569,24 @@ void CSFTPSession::Disconnect()
  */
 bool CSFTPSession::GetItemPermissions(const std::string& path, uint32_t& permissions)
 {
-  bool gotPermissions = false;
-  std::unique_lock<std::recursive_mutex> lock(m_lock);
-  if (m_connected)
-  {
-    sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
-    if (attributes)
-    {
-      if (attributes->flags & SSH_FILEXFER_ATTR_PERMISSIONS)
-      {
-        permissions = attributes->permissions;
-        gotPermissions = true;
-      }
-
-      sftp_attributes_free(attributes);
-    }
+  if (!m_connected) {
+    return false;
   }
+
+  std::unique_lock<std::recursive_mutex> lock(m_lock);
+  sftp_attributes attributes = sftp_stat(m_sftp_session, CorrectPath(path).c_str());
+  if (attributes == nullptr) {
+    return false;
+  }
+
+  bool gotPermissions = false;
+  if (attributes->flags & SSH_FILEXFER_ATTR_PERMISSIONS)
+  {
+    permissions = attributes->permissions;
+    gotPermissions = true;
+  }
+
+  sftp_attributes_free(attributes);
   return gotPermissions;
 }
 

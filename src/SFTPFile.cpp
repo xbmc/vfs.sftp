@@ -42,67 +42,67 @@ public:
   ssize_t Read(kodi::addon::VFSFileHandle context, uint8_t* buffer, size_t uiBufSize) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
-    if (ctx && ctx->session && ctx->sftp_handle)
-    {
-      int rc = ctx->session->Read(ctx->sftp_handle, buffer, uiBufSize);
-
-      if (rc >= 0)
-        return rc;
-      else
-        kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to read %s", ctx->file.c_str());
-    }
-    else
+    if (ctx == nullptr || ctx->session == nullptr || ctx->sftp_handle == nullptr) {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't read without a handle");
+      return -1;
+    }
 
+    int rc = ctx->session->Read(ctx->sftp_handle, buffer, uiBufSize);
+    if (rc >= 0)
+      return rc;
+
+    kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to read %s", ctx->file.c_str());
     return -1;
   }
 
   ssize_t Write(kodi::addon::VFSFileHandle context, const uint8_t* buffer, size_t uiBufSize) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
-    if (ctx && ctx->session && ctx->sftp_handle)
-    {
-      int writeBytes = ctx->session->Write(ctx->sftp_handle, buffer, uiBufSize);
-
-      if (writeBytes >= 0)
-        return writeBytes;
-      else
-        kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to write %s", ctx->file.c_str());
-    }
-    else
+    if (ctx == nullptr || ctx->session == nullptr || ctx->sftp_handle == nullptr) {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't write without a handle");
+      return -1;
+    }
 
+    int writeBytes = ctx->session->Write(ctx->sftp_handle, buffer, uiBufSize);
+    if (writeBytes >= 0) {
+      return writeBytes;
+    }
+
+    kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to write %s", ctx->file.c_str());
     return -1;
   }
 
   int64_t Seek(kodi::addon::VFSFileHandle context, int64_t iFilePosition, int whence) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
-    if (ctx && ctx->session && ctx->sftp_handle)
-    {
-      uint64_t position = 0;
-      if (whence == SEEK_SET)
-        position = iFilePosition;
-      else if (whence == SEEK_CUR)
-        position = GetPosition(context) + iFilePosition;
-      else if (whence == SEEK_END)
-        position = GetLength(context) + iFilePosition;
-
-      if (ctx->session->Seek(ctx->sftp_handle, position) == 0)
-        return GetPosition(context);
-      else
-        return -1;
-    }
-    else
-    {
+    if (ctx == nullptr || ctx->session == nullptr || ctx->sftp_handle == nullptr) {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't seek without a handle");
       return -1;
     }
+
+    uint64_t position = 0;
+    if (whence == SEEK_SET)
+      position = iFilePosition;
+    else if (whence == SEEK_CUR)
+      position = GetPosition(context) + iFilePosition;
+    else if (whence == SEEK_END)
+      position = GetLength(context) + iFilePosition;
+
+    if (ctx->session->Seek(ctx->sftp_handle, position) == 0)
+      return GetPosition(context);
+
+    kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to seek %s", ctx->file.c_str());
+    return -1;
   }
 
   int64_t GetLength(kodi::addon::VFSFileHandle context) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
+    if (ctx == nullptr || ctx->session == nullptr) {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't GetLength without a handle");
+      return 0;
+    }
+
     kodi::vfs::FileStatus buffer;
     if (ctx->session->Stat(ctx->file.c_str(), buffer) != 0)
       return 0;
@@ -113,12 +113,13 @@ public:
   int64_t GetPosition(kodi::addon::VFSFileHandle context) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
-    if (ctx->session && ctx->sftp_handle)
-      return ctx->session->GetPosition(ctx->sftp_handle);
+    if (ctx == nullptr || ctx->session == nullptr || ctx->sftp_handle == nullptr) {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't get position without a handle for '%s'",
+                ctx->file.c_str());
+      return 0;
+    }
 
-    kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Can't get position without a handle for '%s'",
-              ctx->file.c_str());
-    return 0;
+    return ctx->session->GetPosition(ctx->sftp_handle);
   }
 
   bool IoControlGetSeekPossible(kodi::addon::VFSFileHandle context) override { return true; }
@@ -126,21 +127,21 @@ public:
   int Stat(const kodi::addon::VFSUrl& url, kodi::vfs::FileStatus& buffer) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
-    if (session)
-      return session->Stat(url.GetFilename().c_str(), buffer);
-    else
+    if (session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to stat for '%s'",
                 url.GetFilename().c_str());
       return -1;
     }
+
+    return session->Stat(url.GetFilename().c_str(), buffer);
   }
 
   bool Close(kodi::addon::VFSFileHandle context) override
   {
     SFTPContext* ctx = static_cast<SFTPContext*>(context);
-    if (ctx->session && ctx->sftp_handle)
-      ctx->session->CloseFileHandle(ctx->sftp_handle);
+    if (ctx && ctx->session && ctx->sftp_handle)
+        ctx->session->CloseFileHandle(ctx->sftp_handle);
     delete ctx;
 
     return true;
@@ -149,14 +150,14 @@ public:
   bool Exists(const kodi::addon::VFSUrl& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
-    if (session)
-      return session->FileExists(url.GetFilename());
-    else
+    if (session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to check exists for '%s'",
                 url.GetFilename().c_str());
       return false;
     }
+
+    return session->FileExists(url.GetFilename());
   }
 
   void ClearOutIdle() override { CSFTPSessionManager::Get().ClearOutIdleSessions(); }
@@ -166,13 +167,13 @@ public:
   bool DirectoryExists(const kodi::addon::VFSUrl& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
-    if (session)
-      return session->DirectoryExists(url.GetFilename());
-    else
+    if (session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to check exists");
       return false;
     }
+
+    return session->DirectoryExists(url.GetFilename());
   }
 
   bool GetDirectory(const kodi::addon::VFSUrl& url,
@@ -190,53 +191,53 @@ public:
   bool Delete(const kodi::addon::VFSUrl& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
-    if (session)
-      return session->DeleteFile(url.GetFilename());
-    else
+    if (session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to delete file '%s'",
                 url.GetFilename().c_str());
       return false;
     }
+
+    return session->DeleteFile(url.GetFilename());
   }
 
   bool RemoveDirectory(const kodi::addon::VFSUrl& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
-    if (session)
-      return session->DeleteDirectory(url.GetFilename());
-    else
+    if (session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to delete folder '%s'",
                 url.GetFilename().c_str());
       return false;
     }
+
+    return session->DeleteDirectory(url.GetFilename());
   }
 
   bool CreateDirectory(const kodi::addon::VFSUrl& url) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url);
-    if (session)
-      return session->MakeDirectory(url.GetFilename());
-    else
+    if (session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to create folder '%s'",
                 url.GetFilename().c_str());
       return false;
     }
+
+    return session->MakeDirectory(url.GetFilename());
   }
 
   bool Rename(const kodi::addon::VFSUrl& url_from, const kodi::addon::VFSUrl& url_to) override
   {
     CSFTPSessionPtr session = CSFTPSessionManager::Get().CreateSession(url_from);
-    if (session)
-      return session->RenameFile(url_from.GetFilename(), url_to.GetFilename());
-    else
+    if (session == nullptr)
     {
       kodi::Log(ADDON_LOG_ERROR, "SFTPFile: Failed to create session to rename file '%s'",
                 url_from.GetFilename().c_str());
       return false;
     }
+
+    return session->RenameFile(url_from.GetFilename(), url_to.GetFilename());
   }
 
   bool ContainsFiles(const kodi::addon::VFSUrl& url,
