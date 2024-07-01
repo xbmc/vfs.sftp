@@ -91,6 +91,7 @@ CSFTPSession::CSFTPSession(const kodi::addon::VFSUrl& url)
     Disconnect();
 
   m_LastActive = std::chrono::high_resolution_clock::now();
+  read_request_identifier = 0;
 }
 
 CSFTPSession::~CSFTPSession()
@@ -296,7 +297,36 @@ int CSFTPSession::Read(sftp_file handle, void* buffer, size_t length)
 {
   std::unique_lock<std::recursive_mutex> lock(m_lock);
   m_LastActive = std::chrono::high_resolution_clock::now();
-  int result = sftp_read(handle, buffer, length);
+
+  // Start read request if no other read was already queued
+  if (!read_request_identifier) {
+    read_request_length = length;
+    read_request_identifier = sftp_async_read_begin(handle, read_request_length);
+  }
+
+  // Retrieve read from libssh while handling size differences of Kodi-requested and already sftp-requested buffers
+  size_t result = -1;
+  if (length >= read_request_length) {
+    result = sftp_async_read(handle, buffer, length, read_request_identifier);
+  } else {
+    void* temp_buf = malloc(read_request_length);
+    if (!temp_buf) {
+      kodi::Log(ADDON_LOG_ERROR, "SFTPSession::Read - Failed to allocate a temporary buffer with size %d", read_request_length);
+      return -1;
+    }
+    result = sftp_async_read(handle, temp_buf, read_request_length, read_request_identifier);
+    if (result > length) {
+      Seek(handle, GetPosition(handle) - (result - length));
+      kodi::Log(ADDON_LOG_INFO, "SFTPSession::Read - this read requested less bytes than before, requiring inefficient copying of buffers. Last read: %d, this read: %d", result, length);
+    }
+    result = std::min(result, length);
+    memcpy(buffer, temp_buf, result);
+    free(temp_buf);
+  }
+
+  // Already request the next chunk, assume the length will be the same
+  read_request_length = std::min(length, read_request_length);
+  read_request_identifier = sftp_async_read_begin(handle, read_request_length);
   return result;
 }
 
