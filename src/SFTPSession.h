@@ -51,6 +51,8 @@ private:
   bool m_connected;
   ssh_session m_session;
   sftp_session m_sftp_session;
+  int read_request_identifier;
+  size_t read_request_length;
   std::chrono::high_resolution_clock::time_point m_LastActive;
 };
 
