@@ -7,6 +7,7 @@ find_package(Kodi REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(SSH REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(Threads REQUIRED)
 
 include_directories(${KODI_INCLUDE_DIR}/..
                     ${SSH_INCLUDE_DIRS})
@@ -17,13 +18,15 @@ set(SFTP_SOURCES src/SFTPSession.cpp
 set(SFTP_HEADERS src/SFTPSession.h)
 
 set(DEPLIBS ${SSH_LIBRARIES}
-            ${OPENSSL_LIBRARIES}
-            ${ZLIB_LIBRARIES})
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            ZLIB::ZLIB
+            Threads::Threads)
 
 add_definitions( -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64)
 
 if(CORE_SYSTEM_NAME MATCHES "windows")
-  list(APPEND DEPLIBS WS2_32.lib)
+  list(APPEND DEPLIBS iphlpapi.lib WS2_32.lib crypt32.lib)
   add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE -DLIBSSH_STATIC)
 endif()
 
