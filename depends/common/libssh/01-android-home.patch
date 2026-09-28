@@ -1,0 +1,16 @@
+--- a/src/misc.c
++++ b/src/misc.c
+@@ -306,6 +306,13 @@
+     struct passwd *pwdbuf = NULL;
+     char buf[NSS_BUFLEN_PASSWD] = {0};
+     int rc;
++
++#ifdef __ANDROID__
++    szPath = getenv("HOME");
++    if (szPath != NULL) {
++        return strdup(szPath);
++    }
++#endif
+
+     rc = getpwuid_r(getuid(), &pwd, buf, NSS_BUFLEN_PASSWD, &pwdbuf);
+     if (rc != 0 || pwdbuf == NULL ) {
