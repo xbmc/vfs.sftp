@@ -1,6 +1,6 @@
 --- a/Configurations/windows-makefile.tmpl
 +++ b/Configurations/windows-makefile.tmpl
-@@ -259,7 +259,7 @@
+@@ -260,7 +260,7 @@
  ##### User defined commands and flags ################################
  
  CC="{- $config{CC} -}"

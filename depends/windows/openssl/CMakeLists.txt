@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(openssl VERSION 3.5.2 LANGUAGES C)
+project(openssl VERSION 3.5.8 LANGUAGES C)
 
 find_package(StrawberryPerl REQUIRED)
 
