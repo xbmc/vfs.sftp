@@ -1,0 +1,106 @@
+--- a/src/external/curve25519_ref.c
++++ b/src/external/curve25519_ref.c
+@@ -61,7 +61,14 @@ static void freeze(unsigned int a[32])
+ 
+   for (j = 0;j < 32;++j) aorig[j] = a[j];
+   add(a,a,minusp);
++#if defined(_MSC_VER)
++#pragma warning(push)
++#pragma warning(disable: 4146)
++#endif
+   negative = -((a[31] >> 7) & 1);
++#if defined(_MSC_VER)
++#pragma warning(pop)
++#endif
+   for (j = 0;j < 32;++j) a[j] ^= negative & (aorig[j] ^ a[j]);
+ }
+ 
+--- a/src/external/fe25519.c
++++ b/src/external/fe25519.c
+@@ -87,7 +87,14 @@ void fe25519_freeze(fe25519 *r)
+     }
+     m &= ge(r->v[0],237);
+ 
++#if defined(_MSC_VER)
++#pragma warning(push)
++#pragma warning(disable: 4146)
++#endif
+     m = -m;
++#if defined(_MSC_VER)
++#pragma warning(pop)
++#endif
+ 
+     r->v[31] -= m&127;
+     for (i = 30; i > 0; i--) {
+@@ -159,7 +166,14 @@ void fe25519_cmov(fe25519 *r, const fe25519 *x, unsigned char b)
+     int i;
+     uint32_t mask = b;
+ 
++#if defined(_MSC_VER)
++#pragma warning(push)
++#pragma warning(disable: 4146)
++#endif
+     mask = -mask;
++#if defined(_MSC_VER)
++#pragma warning(pop)
++#endif
+ 
+     for (i = 0; i < 32; i++) {
+         r->v[i] ^= mask & (x->v[i] ^ r->v[i]);
+--- a/src/misc.c
++++ b/src/misc.c
+@@ -50,6 +50,10 @@
+ 
+ 
+ #ifdef _WIN32
++#if !defined(WIN32_LEAN_AND_MEAN)
++#define WIN32_LEAN_AND_MEAN
++#endif
++#include <windows.h>
+ 
+ #ifndef _WIN32_IE
+ # define _WIN32_IE 0x0501 // SHGetSpecialFolderPath
+@@ -105,6 +109,7 @@
+ 
+ #ifdef _WIN32
+ char *ssh_get_user_home_dir(void) {
++#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY != WINAPI_FAMILY_APP)
+   char tmp[MAX_PATH] = {0};
+   char *szPath = NULL;
+ 
+@@ -117,6 +122,7 @@ char *ssh_get_user_home_dir(void) {
+     strcpy(szPath, tmp);
+     return szPath;
+   }
++#endif
+ 
+   return NULL;
+ }
+@@ -172,6 +178,7 @@ int gettimeofday(struct timeval *__p, void *__t) {
+ }
+ 
+ char *ssh_get_local_username(void) {
++#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY != WINAPI_FAMILY_APP)
+     DWORD size = 0;
+     char *user;
+ 
+@@ -186,6 +193,7 @@ char *ssh_get_local_username(void) {
+     if (GetUserName(user, &size)) {
+         return user;
+     }
++#endif
+ 
+     return NULL;
+ }
+--- a/src/options.c
++++ b/src/options.c
+@@ -1673,7 +1673,7 @@ int ssh_bind_options_set(ssh_bind sshbind, enum ssh_bind_options_e type,
+           int key_type;
+           ssh_key key;
+           ssh_key *bind_key_loc = NULL;
+-          char **bind_key_path_loc;
++          char **bind_key_path_loc = NULL;
+ 
+           rc = ssh_pki_import_privkey_file(value, NULL, NULL, NULL, &key);
+           if (rc != SSH_OK) {
+

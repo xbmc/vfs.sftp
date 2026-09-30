@@ -1,1 +1,0 @@
-libssh https://www.libssh.org/files/0.12/libssh-0.12.2.tar.xz

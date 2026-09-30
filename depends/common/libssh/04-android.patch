@@ -1,0 +1,46 @@
+--- a/src/misc.c
++++ b/src/misc.c
+@@ -240,6 +240,9 @@ int ssh_is_ipaddr(const char *str) {
+ 
+ char *ssh_get_user_home_dir(void)
+ {
++#ifdef ANDROID
++  return strdup(getenv("HOME"));
++#else
+     char *szPath = NULL;
+     struct passwd pwd;
+     struct passwd *pwdbuf = NULL;
+@@ -260,6 +263,7 @@ char *ssh_get_user_home_dir(void)
+     szPath = strdup(pwd.pw_dir);
+ 
+     return szPath;
++#endif
+ }
+ 
+ /* we have read access on file */
+@@ -299,6 +303,17 @@ int ssh_dir_writeable(const char *path)
+ 
+ char *ssh_get_local_username(void)
+ {
++#ifdef ANDROID
++    char *name = NULL;
++    struct passwd *pwd = NULL;
++    pwd = getpwuid(getuid());
++    if (pwd == NULL) {
++        return NULL;
++    }
++
++    name = strdup(pwd->pw_name);
++
++#else
+     struct passwd pwd;
+     struct passwd *pwdbuf = NULL;
+     char buf[NSS_BUFLEN_PASSWD];
+@@ -312,6 +327,7 @@ char *ssh_get_local_username(void)
+ 
+     name = strdup(pwd.pw_name);
+ 
++#endif
+     if (name == NULL) {
+         return NULL;
+     }

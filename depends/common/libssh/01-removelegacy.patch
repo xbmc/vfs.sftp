@@ -1,0 +1,11 @@
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -121,7 +121,6 @@ set(libssh_SRCS
+   kex.c
+   known_hosts.c
+   knownhosts.c
+-  legacy.c
+   log.c
+   match.c
+   messages.c
+

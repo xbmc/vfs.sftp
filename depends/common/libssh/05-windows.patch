@@ -1,0 +1,51 @@
+--- a/include/libssh/sftp.h
++++ b/include/libssh/sftp.h
+@@ -57,7 +57,7 @@ extern "C" {
+ # ifndef _SSIZE_T_DEFINED
+ #  undef ssize_t
+ #  include <BaseTsd.h>
+-   typedef _W64 SSIZE_T ssize_t;
++   typedef intptr_t ssize_t;
+ #  define _SSIZE_T_DEFINED
+ # endif /* _SSIZE_T_DEFINED */
+ 
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -391,7 +391,7 @@ if (BUILD_STATIC_LIB)
+   add_library(ssh::static ALIAS ssh-static)
+ 
+   if (MSVC)
+-    set(OUTPUT_SUFFIX static)
++    set(OUTPUT_SUFFIX )
+   else (MSVC)
+     set(OUTPUT_SUFFIX )
+   endif (MSVC)
+--- a/src/connector.c
++++ b/src/connector.c
+@@ -33,6 +33,11 @@
+ #define CHUNKSIZE 4096
+ 
+ #ifdef _WIN32
++#ifdef _MSC_VER
++#ifndef ssize_t
++typedef intptr_t ssize_t;
++#endif /* ssize_t */
++#endif /* _MSC_VER */
+ # ifdef HAVE_IO_H
+ #  include <io.h>
+ #  undef open
+--- a/src/socket.c
++++ b/src/socket.c
+@@ -26,6 +26,11 @@
+ #include <errno.h>
+ #include <stdio.h>
+ #ifdef _WIN32
++#ifdef _MSC_VER
++#ifndef ssize_t
++typedef intptr_t ssize_t;
++#endif /* ssize_t */
++#endif /* _MSC_VER */
+ #include <winsock2.h>
+ #include <ws2tcpip.h>
+ #if _MSC_VER >= 1400
+

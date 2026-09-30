@@ -1,1 +1,1 @@
-libssh https://www.libssh.org/files/0.12/libssh-0.12.2.tar.xz
+libssh http://mirrors.kodi.tv/build-deps/sources/libssh-0.9.4.tar.xz
