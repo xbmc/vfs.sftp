@@ -1,0 +1,9 @@
+--- a/src/misc.c
++++ b/src/misc.c
+@@ -364,5 +364,5 @@
+     }
+
+-    if (S_ISDIR(buffer.st_mode) && (buffer.st_mode & S_IWRITE)) {
++    if (S_ISDIR(buffer.st_mode) && (buffer.st_mode & S_IWUSR)) {
+         return 1;
+     }
